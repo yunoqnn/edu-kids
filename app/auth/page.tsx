@@ -11,9 +11,10 @@ function AuthForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const roleFromUrl = (searchParams.get('role') as Role) || 'PARENT'
+  const tabFromUrl = (searchParams.get('tab') as Tab) || 'signin'
 
   const [role, setRole] = useState<Role>(roleFromUrl)
-  const [tab, setTab] = useState<Tab>('signin')
+  const [tab, setTab] = useState<Tab>(tabFromUrl)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,6 +23,7 @@ function AuthForm() {
   const [error, setError] = useState('')
 
   useEffect(() => setRole(roleFromUrl), [roleFromUrl])
+  useEffect(() => setTab(tabFromUrl), [tabFromUrl])
 
   const redirectByRole = (r: Role) => {
     if (r === 'PARENT') router.push('/parent/dashboard')

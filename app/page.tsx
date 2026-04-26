@@ -14,8 +14,8 @@ export default function HomePage() {
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, color: 'var(--primary)' }}>StudyComp</span>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          <button className="btn-ghost" style={{ padding: '8px 20px', fontSize: 14 }} onClick={() => router.push('/auth?role=PARENT')}>Нэвтрэх</button>
-          <button className="btn-primary" style={{ padding: '8px 20px', fontSize: 14 }} onClick={() => router.push('/auth?role=PARENT')}>Бүртгүүлэх</button>
+          <button className="btn-ghost" style={{ padding: '8px 20px', fontSize: 14 }} onClick={() => router.push('/auth?tab=signin')}>Нэвтрэх</button>
+          <button className="btn-primary" style={{ padding: '8px 20px', fontSize: 14 }} onClick={() => router.push('/auth?tab=signup')}>Бүртгүүлэх</button>
         </div>
       </nav>
 
