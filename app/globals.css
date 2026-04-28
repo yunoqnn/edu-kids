@@ -1,21 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary: #9e78c2;
-  --primary-dark: #7d5da1;
-  --primary-light: #c4aedd;
-  --primary-pale: #f3eefb;
-  --text: #1a1a2e;
-  --text-muted: #6b7280;
-  --border: #e5e7eb;
-  --surface: #ffffff;
-  --surface-2: #fafafa;
-  --font-display: 'Sora', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --primary: #5B7C9E;
+  --primary-dark: #4A6580;
+  --primary-light: #7BA3C4;
+  --primary-pale: #E8F1F8;
+  --accent-teal: #7DBAB5;
+  --accent-coral: #E8A5A5;
+  --accent-purple: #9B8BBC;
+  --accent-wood: #C4A77D;
+  --background: #FAF7F2;
+  --background-cream: #F5EDE4;
+  --text: #3D3D3D;
+  --text-muted: #6B7280;
+  --border: #E5DDD3;
+  --surface: #FFFFFF;
+  --surface-2: #FBF9F6;
+  --font-display: 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
 }
 
 * {
@@ -27,7 +33,7 @@
 body {
   font-family: var(--font-body);
   color: var(--text);
-  background: var(--surface);
+  background: var(--background);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -37,8 +43,8 @@ h1, h2, h3 {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--surface-2); }
-::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--background-cream); }
+::-webkit-scrollbar-thumb { background: var(--accent-wood); border-radius: 3px; }
 
 /* Utility classes */
 .btn-primary {
@@ -63,16 +69,34 @@ h1, h2, h3 {
 .btn-ghost {
   background: transparent;
   color: var(--primary);
-  border: 1.5px solid var(--primary);
-  border-radius: 10px;
+  border: 2px solid var(--primary);
+  border-radius: 12px;
   padding: 11px 24px;
   font-family: var(--font-body);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
-.btn-ghost:hover { background: var(--primary-pale); }
+.btn-ghost:hover { background: var(--primary-pale); border-color: var(--primary-dark); }
+
+.btn-secondary {
+  background: var(--accent-teal);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-secondary:hover { background: #6AA9A4; transform: translateY(-1px); }
+.btn-secondary:active { transform: translateY(0); }
 
 .card {
   background: white;
