@@ -22,14 +22,14 @@ export default function HomePage() {
             <button
               className="btn-ghost"
               style={{ padding: '8px 20px', fontSize: 14 }}
-              onClick={() => router.push('/auth?tab=signin')}
+              onClick={() => router.push('/role-select?tab=signin')}
             >
               Login
             </button>
             <button
               className="btn-primary"
               style={{ padding: '8px 20px', fontSize: 14 }}
-              onClick={() => router.push('/auth?tab=signup')}
+              onClick={() => router.push('/role-select?tab=signup')}
             >
               Sign Up
             </button>
@@ -88,7 +88,7 @@ export default function HomePage() {
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button
               className="btn-primary text-lg px-10 py-4 shadow-xl"
-              onClick={() => router.push('/auth?tab=signup')}
+              onClick={() => router.push('/role-select?tab=signup')}
             >
               <Star className="w-5 h-5" />
               Get Started
@@ -96,7 +96,7 @@ export default function HomePage() {
             <button
               className="btn-ghost text-lg px-10 py-4"
               style={{ background: 'rgba(255,255,255,0.85)' }}
-              onClick={() => router.push('/auth?tab=signin')}
+              onClick={() => router.push('/role-select?tab=signin')}
             >
               Login
             </button>
@@ -271,7 +271,7 @@ export default function HomePage() {
               <button
                 className="btn-primary"
                 style={{ padding: '12px 28px', fontSize: 15 }}
-                onClick={() => router.push('/auth?tab=signup&role=PARENT')}
+                onClick={() => router.push('/role-select?tab=signup')}
               >
                 Get Started as a Parent
               </button>
@@ -319,7 +319,7 @@ export default function HomePage() {
               <button
                 className="btn-ghost mt-6"
                 style={{ padding: '12px 28px', fontSize: 15 }}
-                onClick={() => router.push('/auth?tab=signup&role=CREATOR')}
+                onClick={() => router.push('/role-select?tab=signup')}
               >
                 Sign Up as a Teacher
               </button>
@@ -408,7 +408,7 @@ export default function HomePage() {
           <button
             className="btn-primary text-lg px-12 py-5 shadow-2xl"
             style={{ background: 'var(--accent-teal)', fontSize: 18 }}
-            onClick={() => router.push('/auth?tab=signup')}
+            onClick={() => router.push('/role-select?tab=signup')}
           >
             <Star className="w-6 h-6" />
             Start Now
