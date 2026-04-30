@@ -15,7 +15,7 @@ export default function DashboardShell({ role, name, children, navItems, activeP
   const router = useRouter()
 
   const handleLogout = async () => {
-    const { supabase: sb } = await import('@/lib/supabase'); await sb.auth.signOut()
+    await supabase.auth.signOut()
     router.push('/')
   }
 
