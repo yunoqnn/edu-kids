@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 interface Props {
-  role: 'PARENT' | 'CREATOR'
+  role: 'PARENT' | 'CONTENT_CREATOR'
   name: string
   children: React.ReactNode
   navItems: { href: string; label: string; icon: string }[]

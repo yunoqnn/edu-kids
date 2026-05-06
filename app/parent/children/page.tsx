@@ -227,6 +227,19 @@ export default function ChildrenPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/'); return }
       if (data.user.user_metadata?.role !== 'PARENT') { router.push('/'); return }
+
+    /* Ensure profile row exists */
+      const { error: upsertError } = await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email: data.user.email ?? '',
+        name: data.user.user_metadata?.name ?? 'User',
+        role: 'PARENT' as const,
+    }, { onConflict: 'id' })
+
+      if (upsertError) {
+        console.error('Profile upsert failed:', upsertError.message)
+      }
+
       setParentName(data.user.user_metadata?.name || '')
       setUserId(data.user.id)
       await fetchStudents(data.user.id)

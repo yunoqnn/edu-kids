@@ -9,7 +9,7 @@ function RoleSelectForm() {
   const searchParams = useSearchParams()
   const tab = searchParams.get('tab') || 'signin'
 
-  const handleSelect = (role: 'PARENT' | 'CREATOR') => {
+  const handleSelect = (role: 'PARENT' | 'CONTENT_CREATOR') => {
     router.push(`/auth?tab=${tab}&role=${role}`)
   }
 
@@ -151,7 +151,7 @@ function RoleSelectForm() {
 
             {/* Teacher Card */}
             <button
-              onClick={() => handleSelect('CREATOR')}
+              onClick={() => handleSelect('CONTENT_CREATOR')}
               style={{
                 background: 'var(--surface)',
                 border: '2px solid var(--border)',

@@ -17,15 +17,24 @@ export default function CreatorDashboard() {
   const [name, setName] = useState('Контент бүтээгч')
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/'); return }
-      const role = data.user.user_metadata?.role
-      if (role !== 'CREATOR') { router.push('/'); return }
-      setName(data.user.user_metadata?.name || 'Контент бүтээгч')
-      setLoading(false)
-    })
-  }, [router])
+useEffect(() => {
+  supabase.auth.getUser().then(async ({ data }) => {
+    if (!data.user) { router.push('/'); return }
+    const role = data.user.user_metadata?.role
+    if (role !== 'CONTENT_CREATOR') { router.push('/'); return }
+
+    /* Ensure profile row exists */
+    await supabase.from('profiles').upsert({
+      id: data.user.id,
+      email: data.user.email ?? '',
+      name: data.user.user_metadata?.name ?? 'User',
+      role: 'CONTENT_CREATOR' as const,
+    }, { onConflict: 'id' })
+
+    setName(data.user.user_metadata?.name || 'Контент бүтээгч')
+    setLoading(false)
+  })
+}, [router])
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Уншиж байна...</div>
 
@@ -36,7 +45,7 @@ export default function CreatorDashboard() {
   ]
 
   return (
-    <DashboardShell role="CREATOR" name={name} navItems={NAV} activePath={pathname}>
+    <DashboardShell role="CONTENT_CREATOR" name={name} navItems={NAV} activePath={pathname}>
       <div className="fade-up">
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Контент самбар ✏️</h1>
