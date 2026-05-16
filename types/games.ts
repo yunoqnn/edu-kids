@@ -7,10 +7,10 @@ export type GameType =
   | 'MATCHSTICK'
   | 'CATEGORY_SORT'
   | 'SEQUENCE_REPEAT'
-  | 'SOUND_MEMORY'
   | 'READ_REMEMBER'
 
-export type MediaType = 'text' | 'image' | 'audio'
+export type MediaType = 'text' | 'image' | 'audio' | 'video'
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD'
 
 export interface MediaContent {
   type: MediaType
@@ -22,6 +22,7 @@ export interface GameConfig {
   timeLimitSeconds?: number
   shuffleOptions?: boolean
   showInstantFeedback?: boolean
+  difficulty?: Difficulty
 }
 
 export interface GameResult {
@@ -38,19 +39,25 @@ export interface GameEngineProps<T = unknown> {
   onComplete: (result: GameResult) => void
 }
 
-/* ---- Per-game data shapes ---- */
-
 export interface QuizOption {
   id: string
   content: MediaContent
   isCorrect: boolean
 }
 
-export interface SimpleQuizData {
+/* ---- SimpleQuiz ---- */
+
+export interface SimpleQuizQuestion {
   question: MediaContent
   options: QuizOption[]
   explanation?: string
 }
+
+export interface SimpleQuizData {
+  questions: SimpleQuizQuestion[]
+}
+
+/* ---- DragDrop ---- */
 
 export interface DragDropItem {
   id: string
@@ -63,10 +70,16 @@ export interface DragDropZone {
   acceptsItemId: string
 }
 
-export interface DragDropData {
+export interface DragDropRound {
   items: DragDropItem[]
   zones: DragDropZone[]
 }
+
+export interface DragDropData {
+  rounds: DragDropRound[]
+}
+
+/* ---- Matching ---- */
 
 export interface MatchingPair {
   id: string
@@ -78,16 +91,31 @@ export interface MatchingData {
   pairs: MatchingPair[]
 }
 
-export interface PatternData {
+/* ---- Pattern ---- */
+
+export interface PatternQuestion {
   sequence: MediaContent[]
   missingIndex: number
   options: QuizOption[]
+  allowTextInput?: boolean
 }
 
-export interface OddOneOutData {
+export interface PatternData {
+  questions: PatternQuestion[]
+}
+
+/* ---- OddOneOut ---- */
+
+export interface OddOneOutQuestion {
   items: Array<{ id: string; content: MediaContent; isOdd: boolean }>
   explanation?: string
 }
+
+export interface OddOneOutData {
+  questions: OddOneOutQuestion[]
+}
+
+/* ---- Matchstick (hidden in UI) ---- */
 
 export interface MatchstickSegmentDef {
   id: string
@@ -104,11 +132,15 @@ export interface MatchstickData {
   hint?: string
 }
 
+/* ---- CategorySort ---- */
+
 export interface CategorySortData {
   categories: Array<{ id: string; label: string; color: string }>
   items: Array<{ id: string; content: MediaContent; categoryId: string }>
   timePerItemSeconds: number
 }
+
+/* ---- SequenceRepeat ---- */
 
 export interface SequenceRepeatData {
   tileCount: number
@@ -118,13 +150,7 @@ export interface SequenceRepeatData {
   displaySpeedMs: number
 }
 
-export interface SoundMemoryData {
-  pairs: Array<{
-    id: string
-    audio: string
-    match: MediaContent
-  }>
-}
+/* ---- ReadRemember ---- */
 
 export interface ReadRememberData {
   studyContent: MediaContent
@@ -136,7 +162,15 @@ export interface ReadRememberData {
   }>
 }
 
+/* ---- Union ---- */
+
 export type AnyGameData =
-  | SimpleQuizData | DragDropData | MatchingData | PatternData
-  | OddOneOutData | MatchstickData | CategorySortData
-  | SequenceRepeatData | SoundMemoryData | ReadRememberData
+  | SimpleQuizData
+  | DragDropData
+  | MatchingData
+  | PatternData
+  | OddOneOutData
+  | MatchstickData
+  | CategorySortData
+  | SequenceRepeatData
+  | ReadRememberData

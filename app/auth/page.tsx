@@ -253,7 +253,7 @@ function PrimaryButton({ children, onClick, color = '#1F1A2E', disabled }: {
 }
 
 /* ---------- Sign In panel ---------- */
-function SignInPanel({ role, onSwitch }: { role: Role; onSwitch: () => void }) {
+function SignInPanel({ role, onSwitch, signupLabel = 'Бүртгүүлэх' }: { role: Role; onSwitch: () => void; signupLabel?: string }) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -316,7 +316,7 @@ function SignInPanel({ role, onSwitch }: { role: Role; onSwitch: () => void }) {
       <div style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: '#5A5470' }}>
         Шинэ хэрэглэгч үү?{' '}
         <button type="button" onClick={onSwitch} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#F26A6A', fontWeight: 700, fontFamily: 'inherit', fontSize: 14, borderBottom: '1.5px solid #F26A6A' }}>
-          Бүртгүүлэх
+          {signupLabel}
         </button>
       </div>
     </form>
@@ -433,17 +433,20 @@ function SignUpPanel({ role, onSwitch }: { role: Role; onSwitch: () => void }) {
 function AuthForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const roleFromUrl = (searchParams.get('role') as Role) ?? 'PARENT'
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const roleFromUrl = searchParams.get('role') as Role | null
+
+  /* If came from role-select: default to signup.
+     If came from direct sign-in button: signin only. */
+  const [mode, setMode] = useState<'signin' | 'signup'>(
+    roleFromUrl ? 'signup' : 'signin'
+  )
 
   const isSignIn = mode === 'signin'
-  /* left panel color: yellow for PARENT, pink for CONTENT_CREATOR */
-  const leftBg = roleFromUrl === 'PARENT' ? '#FFC93C' : '#FF8C8C'
-  const headlineAccent = roleFromUrl === 'PARENT' ? '#F26A6A' : '#7E5BD9'
+  const leftBg = '#FF8C8C'
+  const headlineAccent = roleFromUrl === 'CONTENT_CREATOR' ? '#7E5BD9' : '#F26A6A'
 
   return (
     <>
-      {/* Google Fonts */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Lexend:wght@400;600;700&display=swap');
         @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -459,13 +462,11 @@ function AuthForm() {
         {/* LEFT PANEL */}
         <div className="auth-left" style={{
           position: 'relative', overflow: 'hidden',
-          background: leftBg, transition: 'background 360ms ease',
+          background: leftBg,
           padding: '40px 60px', display: 'flex', flexDirection: 'column',
         }}>
-          {/* Dotted texture */}
           <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(rgba(31,26,46,0.10) 1px, transparent 1px)', backgroundSize: '22px 22px', opacity: 0.6, pointerEvents: 'none' }} />
-          {/* Blob */}
-          <div style={{ position: 'absolute', right: -120, top: -120, width: 340, height: 340, background: roleFromUrl === 'PARENT' ? '#FFE08A' : '#FFB3B3', borderRadius: '50%', transition: 'background 360ms ease' }} />
+          <div style={{ position: 'absolute', right: -120, top: -120, width: 340, height: 340, background: '#FFB3B3', borderRadius: '50%' }} />
 
           {/* Logo */}
           <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -494,46 +495,58 @@ function AuthForm() {
 
         {/* RIGHT PANEL */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 60px', overflow: 'auto', background: '#FFF7EC' }}>
-          {/* Paper card border */}
           <div style={{ position: 'absolute', inset: 24, borderRadius: 32, background: '#FFF7EC', boxShadow: '0 20px 60px -30px rgba(31,26,46,0.25), inset 0 0 0 1.5px #EADFCB', pointerEvents: 'none' }} />
 
-          {/* Back to role select */}
-          <button
-            type="button"
-            onClick={() => router.push('/role-select')}
-            style={{
-              position: 'absolute', top: 48, left: 60, zIndex: 3,
-              width: 40, height: 40, borderRadius: 10,
-              background: '#FFFFFF', border: '1.5px solid #EADFCB',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(31,26,46,0.08)',
-              transition: 'border-color 140ms ease',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1F1A2E' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#EADFCB' }}
-            aria-label="Буцах"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
+          {/* Back to role-select (only when in signup mode) */}
+          {mode === 'signup' && (
+            <button
+              type="button"
+              onClick={() => router.push('/role-select')}
+              style={{
+                position: 'absolute', top: 48, left: 60, zIndex: 3,
+                width: 40, height: 40, borderRadius: 10,
+                background: '#FFFFFF', border: '1.5px solid #EADFCB',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(31,26,46,0.08)',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1F1A2E' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#EADFCB' }}
+              aria-label="Буцах"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+          )}
 
-          {/* Role badge */}
-          <div style={{
-            position: 'absolute', top: 48, right: 60, zIndex: 3,
-            background: '#1F1A2E', color: '#FFF7EC',
-            padding: '8px 14px', borderRadius: 999, fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: 'uppercase',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            {roleFromUrl === 'PARENT' ? 'Эцэг эх' : 'Бүтээгч'}
-          </div>
+          {/* Role badge — only when role is known */}
+          {roleFromUrl && (
+            <div style={{
+              position: 'absolute', top: 48, right: 60, zIndex: 3,
+              background: '#1F1A2E', color: '#FFF7EC',
+              padding: '8px 14px', borderRadius: 999, fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              {roleFromUrl === 'PARENT' ? 'Эцэг эх' : 'Бүтээгч'}
+            </div>
+          )}
 
           {/* Form */}
           <div style={{ position: 'relative', zIndex: 2, width: '100%', display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
             <div key={mode} style={{ animation: 'slideIn 380ms cubic-bezier(.2,.8,.2,1)', width: '100%', display: 'flex', justifyContent: 'center' }}>
               {isSignIn
-                ? <SignInPanel role={roleFromUrl} onSwitch={() => setMode('signup')} />
-                : <SignUpPanel role={roleFromUrl} onSwitch={() => setMode('signin')} />}
+                ? <SignInPanel
+                    role={roleFromUrl ?? 'PARENT'}
+                    onSwitch={roleFromUrl
+                      ? () => setMode('signup')
+                      : () => router.push('/role-select')
+                    }
+                    signupLabel={roleFromUrl ? 'Бүртгүүлэх' : 'Бүртгэл үүсгэх'}
+                  />
+                : <SignUpPanel
+                    role={roleFromUrl ?? 'PARENT'}
+                    onSwitch={() => setMode('signin')}
+                  />}
             </div>
           </div>
         </div>

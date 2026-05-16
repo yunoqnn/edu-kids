@@ -13,11 +13,9 @@ export function GameResultScreen({ result, title, onPlayAgain }: Props) {
   const router = useRouter()
   const pct = Math.round((result.score / result.maxScore) * 100)
   const { emoji, message, color } =
-    pct >= 80 ? { emoji: '🏆', message: 'Гайхалтай!', color: '#7DD3A7' }
-    : pct >= 50 ? { emoji: '⭐', message: 'Сайн байна!', color: '#FFC93C' }
-    : { emoji: '💪', message: 'Дахин оролдоорой!', color: '#F26A6A' }
-  const mins = Math.floor(result.timeElapsedSeconds / 60)
-  const secs = result.timeElapsedSeconds % 60
+    pct >= 80 ? { emoji: '🏆', message: 'Гайхалтай!',      color: '#7DD3A7' }
+    : pct >= 50 ? { emoji: '⭐', message: 'Сайн байна!',    color: '#FFC93C' }
+    :             { emoji: '💪', message: 'Дахин оролдоорой!', color: '#F26A6A' }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-amber-50 flex items-center justify-center p-4">
@@ -41,17 +39,16 @@ export function GameResultScreen({ result, title, onPlayAgain }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {[
-            { label: 'Зөв', val: result.correctCount, bg: 'bg-green-50', color: 'text-green-600' },
-            { label: 'Буруу', val: result.incorrectCount, bg: 'bg-red-50', color: 'text-red-500' },
-            { label: 'Хугацаа', val: mins > 0 ? `${mins}:${secs.toString().padStart(2,'0')}` : `${secs}с`, bg: 'bg-violet-50', color: 'text-violet-600' },
-          ].map((s) => (
-            <div key={s.label} className={`${s.bg} rounded-2xl p-3`}>
-              <div className={`text-2xl font-bold ${s.color}`}>{s.val}</div>
-              <div className="text-xs text-stone-500 mt-0.5">{s.label}</div>
-            </div>
-          ))}
+        {/* Correct / Incorrect only — time is tracked in parent dashboard */}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          <div className="bg-green-50 rounded-2xl p-4">
+            <div className="text-3xl font-bold text-green-600">{result.correctCount}</div>
+            <div className="text-xs text-stone-500 mt-0.5">Зөв</div>
+          </div>
+          <div className="bg-red-50 rounded-2xl p-4">
+            <div className="text-3xl font-bold text-red-500">{result.incorrectCount}</div>
+            <div className="text-xs text-stone-500 mt-0.5">Буруу</div>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3">

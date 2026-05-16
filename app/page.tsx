@@ -22,14 +22,14 @@ export default function HomePage() {
             <button
               className="btn-ghost"
               style={{ padding: '8px 20px', fontSize: 14 }}
-              onClick={() => router.push('/role-select?tab=signin')}
+              onClick={() => router.push('/auth')}
             >
               Login
             </button>
             <button
               className="btn-primary"
               style={{ padding: '8px 20px', fontSize: 14 }}
-              onClick={() => router.push('/role-select?tab=signup')}
+              onClick={() => router.push('/role-select')}
             >
               Sign Up
             </button>
@@ -88,7 +88,7 @@ export default function HomePage() {
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button
               className="btn-primary text-lg px-10 py-4 shadow-xl"
-              onClick={() => router.push('/role-select?tab=signup')}
+              onClick={() => router.push('/role-select')}
             >
               <Star className="w-5 h-5" />
               Get Started
@@ -96,7 +96,7 @@ export default function HomePage() {
             <button
               className="btn-ghost text-lg px-10 py-4"
               style={{ background: 'rgba(255,255,255,0.85)' }}
-              onClick={() => router.push('/role-select?tab=signin')}
+              onClick={() => router.push('/auth')}
             >
               Login
             </button>

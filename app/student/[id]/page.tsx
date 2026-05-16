@@ -3,188 +3,219 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import MemoryCardGame from '@/components/games/MemoryCardGame'
-import DragDropGame from '@/components/games/DragDropGame'
-import NumberSequenceGame from '@/components/games/NumberSequenceGame'
 
-interface Student { id: string; name: string; avatar: string; points: number; level: number }
-interface Exercise { id: string; title: string; type: string; point_reward: number; data: Record<string, unknown> }
+interface Student {
+  id: string
+  name: string
+  avatar: string
+  grade_level: number
+  points_balance: number
+  points_total: number
+  level: number
+}
+
+interface Exercise {
+  id: string
+  title: string
+  game_type: string
+  points_reward: number
+  lesson: {
+    id: string
+    title: string
+    course: {
+      id: string
+      title: string
+    }
+  }
+}
+
+const AVATAR_SRC: Record<string, string> = {
+  bear: '/avatars/bear.jpg',
+  cat: '/avatars/cat.jpg',
+  dog: '/avatars/dog.jpg',
+  rabbit: '/avatars/rabbit.jpg',
+  penguin: '/avatars/penguin.jpg',
+  fox: '/avatars/fox.jpg',
+}
+
+const GAME_LABELS: Record<string, string> = {
+  SIMPLE_QUIZ:     'Асуулт',
+  DRAG_DROP:       'Чирж тавих',
+  MATCHING:        'Хос тааруулах',
+  PATTERN:         'Дараалал',
+  ODD_ONE_OUT:     'Өөр нэгийг ол',
+  CATEGORY_SORT:   'Ангилал',
+  SEQUENCE_REPEAT: 'Дараалал давтах',
+  READ_REMEMBER:   'Уншиж санаарай',
+}
 
 export default function StudentPage() {
   const router = useRouter()
-  const params = useParams()
-  const studentId = params.id as string
-
+  const { id } = useParams<{ id: string }>()
   const [student, setStudent] = useState<Student | null>(null)
   const [exercises, setExercises] = useState<Exercise[]>([])
-  const [active, setActive] = useState<Exercise | null>(null)
   const [loading, setLoading] = useState(true)
-  const [completed, setCompleted] = useState<Set<string>>(new Set())
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const load = async () => {
-      const { data: user } = await supabase.auth.getUser()
-      if (!user.user) { router.push('/'); return }
+      /* Verify parent auth */
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/'); return }
 
-      // Load student
-      const { data: s } = await supabase
+      /* Load student */
+      const { data: s, error: sErr } = await supabase
         .from('students')
         .select('*')
-        .eq('id', studentId)
-        .eq('parent_id', user.user.id)
+        .eq('id', id)
+        .eq('parent_id', user.id)
         .single()
-      if (!s) { router.push('/parent/children'); return }
+
+      if (sErr || !s) { setError('Сурагч олдсонгүй'); setLoading(false); return }
       setStudent(s)
 
-      // Load exercises
-      const { data: ex } = await supabase
+      /* Load enrolled exercises via enrollments → courses → lessons → exercises */
+      const { data: enrollments } = await supabase
+        .from('enrollments')
+        .select('course_id')
+        .eq('student_id', id)
+
+      if (!enrollments?.length) { setLoading(false); return }
+
+      const courseIds = enrollments.map((e) => e.course_id)
+
+      const { data: exRows } = await supabase
         .from('exercises')
-        .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false })
-      setExercises(ex || [])
+        .select(`
+          id, title, game_type, points_reward,
+          lessons!inner (
+            id, title,
+            courses!inner ( id, title )
+          )
+        `)
+        .in('lessons.course_id', courseIds)
+        .eq('lessons.is_published', true)
 
-      // Load completed
-      const { data: results } = await supabase
-        .from('exercise_results')
-        .select('exercise_id')
-        .eq('student_id', studentId)
-      setCompleted(new Set((results || []).map((r: { exercise_id: string }) => r.exercise_id)))
-
+      setExercises((exRows as unknown as Exercise[]) ?? [])
       setLoading(false)
     }
     load()
-  }, [router, studentId])
-
-  const handleComplete = async (score: number) => {
-    if (!active || !student) return
-    // Save result
-    await supabase.from('exercise_results').insert({
-      student_id: student.id,
-      exercise_id: active.id,
-      score,
-    })
-    // Update student points
-    await supabase
-      .from('students')
-      .update({ points: (student.points || 0) + score })
-      .eq('id', student.id)
-    setStudent(s => s ? { ...s, points: s.points + score } : s)
-    setCompleted(c => new Set([...c, active.id]))
-  }
-
-  const typeIcon: Record<string, string> = {
-    MEMORY_CARD: '🃏',
-    DRAG_DROP: '🧩',
-    NUMBER_SEQUENCE: '🔢',
-  }
-  const typeLabel: Record<string, string> = {
-    MEMORY_CARD: 'Memory Card',
-    DRAG_DROP: 'Drag & Drop',
-    NUMBER_SEQUENCE: 'Тооны гинж',
-  }
+  }, [id, router])
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', color: 'var(--text-muted)' }}>
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 text-stone-400 font-medium animate-pulse">
       Уншиж байна...
     </div>
   )
 
+  if (error || !student) return (
+    <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="text-center">
+        <p className="text-red-500 font-bold mb-4">{error || 'Сурагч олдсонгүй'}</p>
+        <button onClick={() => router.back()}
+          className="px-4 py-2 bg-stone-800 text-white rounded-xl font-semibold">
+          Буцах
+        </button>
+      </div>
+    </div>
+  )
+
+  const avatarSrc = AVATAR_SRC[student.avatar] ?? '/avatars/cat.jpg'
+
   return (
-    <div style={{ minHeight: '100vh', background: '#fafafa', fontFamily: 'var(--font-body)' }}>
-      {/* Top bar */}
-      <nav style={{ background: 'white', borderBottom: '1.5px solid var(--border)', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {active ? (
-            <button onClick={() => setActive(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>←</button>
-          ) : (
-            <button onClick={() => router.push('/parent/children')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--text-muted)' }}>←</button>
-          )}
-          <span style={{ fontSize: 24 }}>{student?.avatar}</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>{student?.name}</span>
-          {active && <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>/ {active.title}</span>}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ background: 'var(--primary-pale)', borderRadius: 10, padding: '6px 14px', fontSize: 14, fontWeight: 700, color: 'var(--primary)' }}>
-            ⭐ {student?.points} оноо
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-b from-violet-50 to-amber-50">
+      {/* Header */}
+      <header className="bg-white border-b border-stone-200 px-4 py-3 flex items-center gap-3">
+        <button onClick={() => router.back()}
+          className="w-9 h-9 rounded-xl border border-stone-200 flex items-center justify-center hover:border-stone-300 transition-all">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <span className="font-bold text-stone-800">{student.name}</span>
+      </header>
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 24px' }}>
-
-        {/* Game view */}
-        {active ? (
-          <div className="card fade-up" style={{ padding: '28px' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 20, paddingBottom: 16, borderBottom: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              {typeIcon[active.type]} {active.title}
-            </h2>
-            {active.type === 'MEMORY_CARD' && (
-              <MemoryCardGame
-                pairs={(active.data as { pairs: { word: string; imageBase64: string }[] }).pairs}
-                pointReward={active.point_reward}
-                onComplete={handleComplete}
-              />
-            )}
-            {active.type === 'DRAG_DROP' && (
-              <DragDropGame
-                categories={(active.data as { categories: { id: string; name: string }[] }).categories}
-                items={(active.data as { items: { id: string; word: string; imageBase64?: string; correctCategory: string }[] }).items}
-                pointReward={active.point_reward}
-                onComplete={handleComplete}
-              />
-            )}
-            {active.type === 'NUMBER_SEQUENCE' && (
-              <NumberSequenceGame
-                sequences={(active.data as { sequences: { id: string; steps: (number | null)[]; answer: number; hint?: string }[] }).sequences}
-                pointReward={active.point_reward}
-                onComplete={handleComplete}
-              />
-            )}
+      <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
+        {/* Student card */}
+        <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 flex items-center gap-5">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-violet-200 flex-shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={avatarSrc} alt={student.name} className="w-full h-full object-cover" />
           </div>
-        ) : (
-          /* Exercise list */
-          <>
-            <div style={{ marginBottom: 24 }}>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>
-                Тоглоомууд 🎮
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Тоглоом сонгоод эхэлнэ үү!</p>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold text-stone-800">{student.name}</h1>
+            <p className="text-stone-400 text-sm mb-3">{student.grade_level}-р анги</p>
+            <div className="flex gap-4">
+              <div>
+                <div className="text-lg font-bold text-violet-600">{student.points_balance}</div>
+                <div className="text-xs text-stone-400">оноо</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-amber-500">{student.level}</div>
+                <div className="text-xs text-stone-400">түвшин</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-green-600">{student.points_total}</div>
+                <div className="text-xs text-stone-400">нийт оноо</div>
+              </div>
             </div>
+          </div>
+        </div>
 
-            {exercises.length === 0 ? (
-              <div className="card" style={{ padding: '48px', textAlign: 'center', borderStyle: 'dashed' }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🎮</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Тоглоом байхгүй байна</div>
-                <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Контент бүтээгч тоглоом нэмсний дараа энд харагдана</div>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-                {exercises.map((ex) => {
-                  const done = completed.has(ex.id)
-                  return (
-                    <div
-                      key={ex.id}
-                      onClick={() => setActive(ex)}
-                      className="card"
-                      style={{ padding: '24px', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s', border: done ? '1.5px solid #86efac' : '1.5px solid var(--border)', background: done ? '#f0fdf4' : 'white' }}
-                      onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.1)' }}
-                      onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '' }}
-                    >
-                      <div style={{ fontSize: 40, marginBottom: 10 }}>{typeIcon[ex.type]}</div>
-                      <div className="tag" style={{ marginBottom: 8, fontSize: 11 }}>{typeLabel[ex.type]}</div>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 6 }}>{ex.title}</div>
-                      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>+{ex.point_reward} оноо</div>
-                      <div style={{ background: done ? '#16a34a' : 'var(--primary)', color: 'white', borderRadius: 8, padding: '8px', textAlign: 'center', fontSize: 13, fontWeight: 700 }}>
-                        {done ? '✓ Дахин тоглох' : 'Тоглох →'}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+        {/* Exercises */}
+        <div>
+          <h2 className="font-bold text-stone-700 mb-3 text-lg">
+            Дасгалууд
+            {exercises.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-stone-400">({exercises.length})</span>
             )}
-          </>
-        )}
+          </h2>
+
+          {exercises.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center">
+              <div className="text-4xl mb-3">📚</div>
+              <p className="text-stone-500 font-medium text-sm">Одоогоор дасгал байхгүй байна</p>
+              <p className="text-stone-400 text-xs mt-1">Эцэг эх курст бүртгэх шаардлагатай</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {exercises.map((ex) => (
+                <button
+                  key={ex.id}
+                  onClick={() => router.push(`/play/${ex.id}?studentId=${student.id}`)}
+                  className="w-full bg-white rounded-2xl border-2 border-stone-200 p-4 flex items-center gap-4 text-left hover:border-violet-400 hover:bg-violet-50 active:scale-95 transition-all"
+                >
+                  {/* Game type badge */}
+                  <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+                    {ex.game_type === 'SIMPLE_QUIZ'     ? '❓'
+                     : ex.game_type === 'DRAG_DROP'     ? '🖱'
+                     : ex.game_type === 'MATCHING'      ? '🔗'
+                     : ex.game_type === 'PATTERN'       ? '🔢'
+                     : ex.game_type === 'ODD_ONE_OUT'   ? '🎯'
+                     : ex.game_type === 'CATEGORY_SORT' ? '📂'
+                     : ex.game_type === 'SEQUENCE_REPEAT' ? '🎵'
+                     : ex.game_type === 'READ_REMEMBER' ? '📖'
+                     : '🎮'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-stone-800 truncate">{ex.title}</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-violet-600 font-semibold">
+                        {GAME_LABELS[ex.game_type] ?? ex.game_type}
+                      </span>
+                      <span className="text-xs text-stone-400">·</span>
+                      <span className="text-xs text-stone-400">{ex.lesson?.course?.title}</span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    <div className="text-sm font-bold text-amber-500">+{ex.points_reward}</div>
+                    <div className="text-xs text-stone-400">оноо</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -30,6 +30,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
 
+  const isAdminRoute = pathname.startsWith('/admin')
+  if (isAdminRoute) {
+    if (!user) return NextResponse.redirect(new URL('/auth', request.url))
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    if (profile?.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
   return response
 }
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { GAME_LABELS, GAME_REGISTRY } from '@/components/games/registry'
+import { GAME_LABELS, GAME_REGISTRY, ACTIVE_GAME_TYPES } from '@/components/games/registry'
 import { SimpleQuizBuilder }    from './builders/SimpleQuizBuilder'
 import { DragDropBuilder }       from './builders/DragDropBuilder'
 import { MatchingBuilder }       from './builders/MatchingBuilder'
@@ -11,27 +11,25 @@ import { PatternBuilder }        from './builders/PatternBuilder'
 import { OddOneOutBuilder }      from './builders/OddOneOutBuilder'
 import { CategorySortBuilder }   from './builders/CategorySortBuilder'
 import { SequenceRepeatBuilder } from './builders/SequenceRepeatBuilder'
-import { SoundMemoryBuilder }    from './builders/SoundMemoryBuilder'
 import { MatchstickBuilder }     from './builders/MatchstickBuilder'
 import { ReadRememberBuilder }   from './builders/ReadRememberBuilder'
 import type {
   GameType, GameConfig, AnyGameData,
   SimpleQuizData, DragDropData, MatchingData, PatternData,
   OddOneOutData, MatchstickData, CategorySortData,
-  SequenceRepeatData, SoundMemoryData, ReadRememberData,
+  SequenceRepeatData, ReadRememberData,
 } from '@/types/games'
 
 const EMPTY_DATA: Record<GameType, AnyGameData> = {
-  SIMPLE_QUIZ: { question: { type: 'text', value: '' }, options: [], explanation: '' } as SimpleQuizData,
-  DRAG_DROP: { items: [], zones: [] } as DragDropData,
-  MATCHING: { pairs: [] },
-  PATTERN: { sequence: [], missingIndex: 0, options: [] },
-  ODD_ONE_OUT: { items: [] },
-  MATCHSTICK: { prompt: '', segments: [], allowedMoves: 1, solutionSegmentIds: [] },
-  CATEGORY_SORT: { categories: [], items: [], timePerItemSeconds: 5 },
-  SEQUENCE_REPEAT: { tileCount: 4, tileColors: ['#F26A6A', '#7CC5F2', '#7DD3A7', '#FFC93C'], startLength: 2, maxLength: 8, displaySpeedMs: 700 },
-  SOUND_MEMORY: { pairs: [] },
-  READ_REMEMBER: { studyContent: { type: 'text', value: '' }, questions: [] },
+  SIMPLE_QUIZ:     { questions: [{ question: { type: 'text', value: '' }, options: [], explanation: '' }] } as SimpleQuizData,
+  DRAG_DROP:       { rounds: [{ items: [], zones: [] }] } as DragDropData,
+  MATCHING:        { pairs: [] } as MatchingData,
+  PATTERN:         { questions: [{ sequence: [], missingIndex: 0, options: [], allowTextInput: false }] } as PatternData,
+  ODD_ONE_OUT:     { questions: [{ items: [], explanation: '' }] } as OddOneOutData,
+  MATCHSTICK:      { prompt: '', segments: [], allowedMoves: 1, solutionSegmentIds: [] } as MatchstickData,
+  CATEGORY_SORT:   { categories: [], items: [], timePerItemSeconds: 5 } as CategorySortData,
+  SEQUENCE_REPEAT: { tileCount: 4, tileColors: ['#F26A6A','#7CC5F2','#7DD3A7','#FFC93C'], startLength: 2, maxLength: 8, displaySpeedMs: 700 } as SequenceRepeatData,
+  READ_REMEMBER:   { studyContent: { type: 'text', value: '' }, questions: [] } as ReadRememberData,
 }
 
 interface Props {
@@ -81,7 +79,6 @@ export function GameBuilder({ lessonId, exerciseId, initialType = 'SIMPLE_QUIZ',
       case 'MATCHSTICK':      return <MatchstickBuilder    value={gameData as MatchstickData}     onChange={setGameData} />
       case 'CATEGORY_SORT':   return <CategorySortBuilder  value={gameData as CategorySortData}   onChange={setGameData} />
       case 'SEQUENCE_REPEAT': return <SequenceRepeatBuilder value={gameData as SequenceRepeatData} onChange={setGameData} />
-      case 'SOUND_MEMORY':    return <SoundMemoryBuilder   value={gameData as SoundMemoryData}    onChange={setGameData} />
       case 'READ_REMEMBER':   return <ReadRememberBuilder  value={gameData as ReadRememberData}   onChange={setGameData} />
       default: return null
     }
@@ -135,11 +132,30 @@ export function GameBuilder({ lessonId, exerciseId, initialType = 'SIMPLE_QUIZ',
             className="w-full px-4 py-3 rounded-xl border border-stone-200 text-base font-medium focus:outline-none focus:border-violet-400 transition-all" />
         </div>
 
+        {/* Difficulty */}
+        <div>
+          <label className="block text-sm font-semibold text-stone-700 mb-2">Түвшин</label>
+          <div className="flex gap-2">
+            {(['EASY', 'MEDIUM', 'HARD'] as const).map((d) => {
+              const colors = { EASY: 'bg-green-500', MEDIUM: 'bg-amber-500', HARD: 'bg-red-500' }
+              const labels = { EASY: 'Хялбар', MEDIUM: 'Дунд', HARD: 'Хэцүү' }
+              const sel = (config.difficulty ?? 'MEDIUM') === d
+              return (
+                <button key={d} type="button" onClick={() => setConfig({ ...config, difficulty: d })}
+                  className={`flex-1 py-3 rounded-xl font-bold text-sm border-2 transition-all
+                    ${sel ? `${colors[d]} text-white border-transparent` : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'}`}>
+                  {labels[d]}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Game type selector */}
         <div>
           <label className="block text-sm font-semibold text-stone-700 mb-3">Тоглоомын төрөл</label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {(Object.keys(GAME_LABELS) as GameType[]).map((t) => (
+            {ACTIVE_GAME_TYPES.map((t) => (
               <button key={t} type="button" onClick={() => handleTypeChange(t)}
                 className={`px-3 py-3 rounded-xl border-2 text-sm font-semibold text-left transition-all
                   ${gameType === t ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-stone-200 bg-white text-stone-600 hover:border-violet-300'}`}>

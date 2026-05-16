@@ -4,72 +4,95 @@ import { useState, useEffect } from 'react'
 import { GameShell } from '../core/GameShell'
 import { MediaRenderer } from '../core/MediaRenderer'
 import { useGameSession } from '@/hooks/useGameSession'
-import type { GameEngineProps, MatchingData } from '@/types/games'
+import type { GameEngineProps, MatchingData, MediaContent } from '@/types/games'
 
-interface Card { id: string; pairId: string; side: 'left' | 'right'; content: import('@/types/games').MediaContent }
+interface CardInfo { id: string; pairId: string; side: 'left' | 'right'; content: MediaContent }
+interface Selected { id: string; side: 'left' | 'right'; pairId: string }
 
 export function MatchingEngine({ data, config, onComplete }: GameEngineProps<MatchingData>) {
-  const session = useGameSession({ timeLimitSeconds: config.timeLimitSeconds, maxScore: 100, onTimeUp: () => onComplete(session.complete()) })
+  const pts = Math.round(100 / data.pairs.length)
+  const session = useGameSession({
+    timeLimitSeconds: config.timeLimitSeconds,
+    maxScore: 100,
+    onTimeUp: () => onComplete(session.complete()),
+  })
 
-  const cards: Card[] = data.pairs.flatMap((p) => [
-    { id: `L-${p.id}`, pairId: p.id, side: 'left' as const, content: p.left },
-    { id: `R-${p.id}`, pairId: p.id, side: 'right' as const, content: p.right },
-  ])
+  const leftCards: CardInfo[] = data.pairs.map((p) => ({ id: `L-${p.id}`, pairId: p.id, side: 'left', content: p.left }))
+  const [rightCards] = useState<CardInfo[]>(() =>
+    [...data.pairs].sort(() => Math.random() - 0.5).map((p) => ({ id: `R-${p.id}`, pairId: p.id, side: 'right', content: p.right }))
+  )
 
-  const [flipped, setFlipped] = useState<string[]>([])
+  const [selected, setSelected] = useState<Selected | null>(null)
   const [matched, setMatched] = useState<string[]>([])
+  const [wrongIds, setWrongIds] = useState<string[]>([])
   const [locked, setLocked] = useState(false)
 
-  const handleFlip = (id: string) => {
-    if (locked || flipped.includes(id) || matched.includes(id)) return
-    const next = [...flipped, id]
-    setFlipped(next)
-    if (next.length === 2) {
+  const handleClick = (card: CardInfo) => {
+    if (locked || matched.includes(card.pairId)) return
+    if (!selected) { setSelected({ id: card.id, side: card.side, pairId: card.pairId }); return }
+    if (selected.id === card.id) { setSelected(null); return }
+    if (selected.side === card.side) { setSelected({ id: card.id, side: card.side, pairId: card.pairId }); return }
+    /* Different sides — check match */
+    if (selected.pairId === card.pairId) {
+      setMatched((m) => [...m, card.pairId])
+      session.recordCorrect(pts)
+      setSelected(null)
+    } else {
+      setWrongIds([selected.id, card.id])
       setLocked(true)
-      const [a, b] = next.map((cid) => cards.find((c) => c.id === cid)!)
-      if (a.pairId === b.pairId) {
-        setMatched((m) => [...m, a.id, b.id])
-        session.recordCorrect(Math.round(100 / data.pairs.length))
-        setFlipped([])
-        setLocked(false)
-      } else {
-        session.recordIncorrect()
-        setTimeout(() => { setFlipped([]); setLocked(false) }, 900)
-      }
+      session.recordIncorrect()
+      setTimeout(() => { setSelected(null); setWrongIds([]); setLocked(false) }, 700)
     }
   }
 
   useEffect(() => {
-    if (matched.length === cards.length) {
-      setTimeout(() => onComplete(session.complete()), 500)
-    }
-  }, [matched, cards.length, onComplete, session])
+    if (matched.length === data.pairs.length) setTimeout(() => onComplete(session.complete()), 500)
+  }, [matched.length, data.pairs.length])
 
-  const cols = data.pairs.length <= 3 ? 3 : data.pairs.length <= 6 ? 4 : 6
+  const cardCls = (card: CardInfo) => {
+    const base = 'flex items-center justify-center p-3 rounded-2xl border-2 min-h-[64px] text-center transition-all duration-150 active:scale-95 cursor-pointer select-none'
+    if (matched.includes(card.pairId))    return `${base} border-green-400 bg-green-50 opacity-60`
+    if (wrongIds.includes(card.id))       return `${base} border-red-400 bg-red-50`
+    if (selected?.id === card.id)         return `${base} border-violet-500 bg-violet-100 shadow-md scale-105`
+    return `${base} border-stone-200 bg-white hover:border-violet-300 hover:bg-violet-50`
+  }
 
   return (
-    <GameShell title="Тааруулах" score={session.score} timeRemaining={session.timeRemaining} timeLimitSeconds={config.timeLimitSeconds}
-      progress={{ current: matched.length / 2, total: data.pairs.length }}>
+    <GameShell
+      title="Хос тааруулах"
+      score={session.score}
+      timeRemaining={session.timeRemaining}
+      timeLimitSeconds={config.timeLimitSeconds}
+      progress={{ current: matched.length, total: data.pairs.length }}
+    >
       <div className="w-full max-w-lg">
-        <p className="text-center text-stone-500 text-sm mb-5">Нийлэх хосыг хайж ол</p>
-        <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
-          {cards.sort(() => Math.random() - 0.5).map((card) => {
-            const isFlipped = flipped.includes(card.id) || matched.includes(card.id)
-            const isMatched = matched.includes(card.id)
-            return (
-              <button key={card.id} type="button" onClick={() => handleFlip(card.id)}
-                className={`aspect-square rounded-2xl border-2 flex items-center justify-center p-2 transition-all duration-200 active:scale-95
-                  ${isMatched ? 'border-green-400 bg-green-50 shadow-sm'
-                    : isFlipped ? 'border-violet-400 bg-violet-50 shadow-md'
-                    : 'border-stone-200 bg-white hover:border-violet-300 hover:bg-violet-50'}`}>
-                {isFlipped
-                  ? <MediaRenderer content={card.content} size="sm" />
-                  : <div className="w-full h-full rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center">
-                      <span className="text-white text-2xl font-bold">?</span>
-                    </div>}
+        <p className="text-center text-stone-500 text-sm mb-5 font-medium">
+          Зүүнээс нэг, баруунаас нэг сонгоод тааруулаарай
+        </p>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Left column */}
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-bold text-stone-400 text-center uppercase tracking-wide">A</p>
+            {leftCards.map((card) => (
+              <button key={card.id} type="button" onClick={() => handleClick(card)} className={cardCls(card)}>
+                {matched.includes(card.pairId)
+                  ? <span className="text-green-500 text-xl">✓</span>
+                  : <MediaRenderer content={card.content} size="sm" />}
               </button>
-            )
-          })}
+            ))}
+          </div>
+          {/* Right column — shuffled */}
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-bold text-stone-400 text-center uppercase tracking-wide">B</p>
+            {rightCards.map((card) => (
+              <button key={card.id} type="button" onClick={() => handleClick(card)} className={cardCls(card)}>
+                {matched.includes(card.pairId)
+                  ? <span className="text-green-500 text-xl">✓</span>
+                  : <MediaRenderer content={card.content} size="sm" />}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </GameShell>

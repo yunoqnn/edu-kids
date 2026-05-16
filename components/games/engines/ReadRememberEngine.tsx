@@ -57,7 +57,14 @@ export function ReadRememberEngine({ data, config, onComplete }: GameEngineProps
             </div>
           )}
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-8 mb-6 flex flex-col items-center gap-4">
-            <MediaRenderer content={data.studyContent} size="lg" className="max-w-sm" />
+            {data.studyContent.type === 'video'
+            ? <video
+                src={data.studyContent.value}
+                controls
+                className="w-full max-w-md rounded-2xl border border-stone-200"
+                style={{ maxHeight: 300 }}
+              />
+            : <MediaRenderer content={data.studyContent} size="lg" className="max-w-sm" />}
           </div>
           {!data.displayDurationSeconds && (
             <button onClick={() => setPhase('quiz')}
