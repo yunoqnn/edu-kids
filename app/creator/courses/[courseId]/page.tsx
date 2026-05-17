@@ -128,6 +128,11 @@ export default function CourseDetailPage() {
               </svg>
               <span className="font-bold text-stone-700 flex-1">{lesson.title}</span>
               <span className="text-xs text-stone-400">{lesson.exercises.length} дасгал</span>
+              <button type="button"
+                onClick={(e) => { e.stopPropagation(); router.push(`/creator/lessons/${lesson.id}`) }}
+                className="text-xs text-violet-600 hover:text-violet-700 font-semibold px-2 py-1 rounded-lg hover:bg-violet-50 transition-all">
+                Засах
+              </button>
               <button type="button" onClick={(e) => { e.stopPropagation(); togglePublishLesson(lesson.id, lesson.is_published) }}
                 className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all
                   ${lesson.is_published ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-500 hover:bg-green-50'}`}>
