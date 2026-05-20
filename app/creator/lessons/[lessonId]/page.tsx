@@ -54,7 +54,7 @@ function SlideCard({
         <span className="text-xs font-bold text-stone-500">Слайд {index + 1}</span>
         <div className="flex items-center gap-2">
           {slide.audio_url && (
-            <span className="text-xs text-green-600 font-semibold">✓ Дуу бэлэн</span>
+            <span className="text-xs text-green-600 font-semibold">Дуу бэлэн</span>
           )}
           <button
             type="button"
@@ -108,17 +108,38 @@ function SlideCard({
 
       {/* Script textarea — autosaves on blur */}
       <div>
-        <label className="block text-xs font-semibold text-stone-500 mb-1">
-          Дуулах текст
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs font-semibold text-stone-500">
+            Дуулах текст
+          </label>
+          <span className={`text-xs font-semibold tabular-nums ${
+            localScript.length > 280
+              ? 'text-red-500'
+              : localScript.length > 240
+              ? 'text-amber-500'
+              : 'text-stone-400'
+          }`}>
+            {localScript.length} / 300
+          </span>
+        </div>
         <textarea
           value={localScript}
           onChange={(e) => setLocalScript(e.target.value)}
           onBlur={() => onScriptChange(localScript)}
           rows={3}
+          maxLength={300}
           placeholder="Энэ слайдад ярих текстийг бичнэ үү..."
-          className="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:border-violet-400 transition-all resize-none bg-white"
+          className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none transition-all resize-none bg-white ${
+            localScript.length > 280
+              ? 'border-red-300 focus:border-red-400'
+              : 'border-stone-200 focus:border-violet-400'
+          }`}
         />
+        {localScript.length > 280 && (
+          <p className="text-xs text-red-500 mt-1">
+            Chimege API 300 тэмдэгтийн хязгаартай. Товчлох хэрэгтэй.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -137,6 +158,7 @@ export default function LessonEditorPage() {
   const [saving, setSaving] = useState(false)
   const [savedOk, setSavedOk] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [genResult, setGenResult] = useState<{ successCount: number; total: number } | null>(null)
 
   /* Form state */
   const [title, setTitle] = useState('')
@@ -245,8 +267,11 @@ export default function LessonEditorPage() {
   const generateAudio = async () => {
     if (!slideshow) return
     setGenerating(true)
+    setGenResult(null)
     const res = await fetch(`/api/slideshows/${slideshow.id}/generate`, { method: 'POST' })
     if (res.ok) {
+      const json = await res.json()
+      setGenResult({ successCount: json.successCount, total: json.total })
       const { data: sl } = await supabase
         .from('slides')
         .select('*')
@@ -284,7 +309,7 @@ export default function LessonEditorPage() {
           disabled={saving}
           className="px-5 py-2 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 disabled:opacity-50 transition-all"
         >
-          {saving ? 'Хадгалж байна...' : savedOk ? '✓ Хадгалагдлаа' : 'Хадгалах'}
+          {saving ? 'Хадгалж байна...' : savedOk ? 'Хадгалагдлаа' : 'Хадгалах'}
         </button>
       </header>
 
@@ -316,7 +341,7 @@ export default function LessonEditorPage() {
                       : 'bg-white text-stone-600 border-stone-200 hover:border-violet-300'
                     }`}
                 >
-                  {t === 'LESSON' ? '📘 Хичээл' : '📖 Үлгэр'}
+                  {t === 'LESSON' ? 'Хичээл' : 'Үлгэр'}
                 </button>
               ))}
             </div>
@@ -341,15 +366,22 @@ export default function LessonEditorPage() {
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-stone-700">Слайдшоу</h2>
-            {slideshow && slides.length > 0 && slides.some((s) => s.script_text) && (
-              <button
-                onClick={generateAudio}
-                disabled={generating}
-                className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-50 transition-all"
-              >
-                {generating ? 'Үүсгэж байна...' : '🎵 Дуу үүсгэх'}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {genResult && (
+                <span className={`text-xs font-semibold ${genResult.successCount === genResult.total ? 'text-green-600' : 'text-amber-600'}`}>
+                  {genResult.successCount}/{genResult.total} слайд амжилттай
+                </span>
+              )}
+              {slideshow && slides.length > 0 && slides.some((s) => s.script_text) && (
+                <button
+                  onClick={generateAudio}
+                  disabled={generating}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-50 transition-all"
+                >
+                  {generating ? 'Үүсгэж байна...' : 'Дуу үүсгэх'}
+                </button>
+              )}
+            </div>
           </div>
 
           {!slideshow ? (

@@ -61,8 +61,8 @@ export function SequenceRepeatEngine({ data, config, onComplete }: GameEnginePro
 
   const msg = phase === 'showing' ? 'Дарааллыг санаарай...'
     : phase === 'input' ? 'Давтаарай!'
-    : phase === 'correct' ? '✅ Зөв! Дараагийн давхарга...'
-    : phase === 'wrong' ? '❌ Буруу! Тоглоом дууслаа.'
+    : phase === 'correct' ? 'Зөв! Дараагийн давхарга...'
+    : phase === 'wrong' ? 'Буруу! Тоглоом дууслаа.'
     : ''
 
   return (

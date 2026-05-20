@@ -71,7 +71,7 @@ export function OddOneOutEngine({ data, config, onComplete }: GameEngineProps<Od
 
         {showFeedback && q.explanation && (
           <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800 font-medium">
-            💡 {q.explanation}
+            {q.explanation}
           </div>
         )}
         {showFeedback && (

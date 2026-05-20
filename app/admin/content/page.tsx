@@ -13,7 +13,7 @@ interface CourseRow {
 }
 
 const STATUS_LABELS: Record<string, { label: string; dot: string }> = {
-  DRAFT:          { label: 'Ноорог',          dot: 'bg-stone-400' },
+  DRAFT:          { label: 'draft',          dot: 'bg-stone-400' },
   PENDING_REVIEW: { label: 'Хянагдаж байна', dot: 'bg-amber-400' },
   PUBLISHED:      { label: 'Нийтлэгдсэн',    dot: 'bg-green-500' },
   REJECTED:       { label: 'Татгалзсан',      dot: 'bg-red-400' },
@@ -24,7 +24,7 @@ const STATUS_FILTER_TABS = [
   { value: 'PENDING_REVIEW', label: 'Хүлээж байна' },
   { value: 'PUBLISHED', label: 'Нийтлэгдсэн' },
   { value: 'REJECTED', label: 'Татгалзсан' },
-  { value: 'DRAFT', label: 'Ноорог' },
+  { value: 'DRAFT', label: 'Draft' },
 ]
 
 export default function AdminContentPage() {
@@ -200,11 +200,11 @@ export default function AdminContentPage() {
           {/* All / filtered courses */}
           <section>
             <h2 className="font-bold text-stone-700 mb-3">
-              {statusFilter ? STATUS_LABELS[statusFilter]?.label ?? 'Курсууд' : 'Бүх контент'}
+              {statusFilter ? STATUS_LABELS[statusFilter]?.label ?? 'Хичээлүүд' : 'Бүх контент'}
             </h2>
             {(statusFilter ? courses : rest).length === 0 ? (
               <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center text-stone-400 text-sm">
-                Курс олдсонгүй
+                Хичээл олдсонгүй
               </div>
             ) : (
               <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">

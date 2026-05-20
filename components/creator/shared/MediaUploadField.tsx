@@ -76,7 +76,7 @@ export function MediaUploadField({ label, value, onChange, allowedTypes = ['text
               className="px-3 py-2 rounded-xl border border-stone-200 text-sm text-stone-600 hover:border-violet-300 transition-all">
               {uploading ? 'Байршуулж байна...' : 'Аудио сонгох'}
             </button>
-            {value.value && <span className="text-xs text-green-600 font-semibold">✓ Байршуулагдсан</span>}
+            {value.value && <span className="text-xs text-green-600 font-semibold">Байршуулагдсан</span>}
           </div>
           <input type="text" value={value.value} onChange={(e) => onChange({ type: 'audio', value: e.target.value })}
             placeholder="Эсвэл аудио URL"
@@ -93,7 +93,7 @@ export function MediaUploadField({ label, value, onChange, allowedTypes = ['text
               className="px-3 py-2 rounded-xl border border-stone-200 text-sm text-stone-600 hover:border-violet-300 transition-all">
               {uploading ? 'Байршуулж байна...' : 'Видео сонгох'}
             </button>
-            {value.value && <span className="text-xs text-green-600 font-semibold">✓ Байршуулагдсан</span>}
+            {value.value && <span className="text-xs text-green-600 font-semibold">Байршуулагдсан</span>}
           </div>
           <input type="text" value={value.value} onChange={(e) => onChange({ type: 'video', value: e.target.value })}
             placeholder="Эсвэл видео URL"

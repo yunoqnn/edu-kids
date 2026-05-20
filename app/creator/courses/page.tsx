@@ -15,7 +15,7 @@ interface Course {
 }
 
 const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
-  DRAFT:          { label: 'Ноорог',          cls: 'bg-stone-100 text-stone-600' },
+  DRAFT:          { label: 'draft',          cls: 'bg-stone-100 text-stone-600' },
   PENDING_REVIEW: { label: 'Хянагдаж байна', cls: 'bg-amber-100 text-amber-700' },
   PUBLISHED:      { label: 'Нийтлэгдсэн',    cls: 'bg-green-100 text-green-700' },
   REJECTED:       { label: 'Татгалзсан',      cls: 'bg-red-100 text-red-600' },
@@ -48,12 +48,12 @@ export default function CoursesPage() {
             className="w-9 h-9 rounded-xl border border-stone-200 flex items-center justify-center hover:border-stone-300 transition-all">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6" /></svg>
           </button>
-          <h1 className="font-bold text-stone-800 text-lg">Миний курсууд</h1>
+          <h1 className="font-bold text-stone-800 text-lg">Миний хичээлүүд</h1>
         </div>
         <button onClick={() => router.push('/creator/courses/new')}
           className="px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 transition-all flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-          Шинэ курс
+          Шинэ хичээл
         </button>
       </header>
 
@@ -62,11 +62,10 @@ export default function CoursesPage() {
           <div className="text-center py-20 text-stone-400 font-medium animate-pulse">Уншиж байна...</div>
         ) : courses.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-5xl mb-4">📚</div>
-            <p className="text-stone-500 font-medium mb-4">Курс байхгүй байна</p>
+            <p className="text-stone-500 font-medium mb-4">Хичээл байхгүй байна</p>
             <button onClick={() => router.push('/creator/courses/new')}
               className="px-5 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-all">
-              Эхний курсаа үүсгэх
+              Эхний хичээлээ үүсгэх
             </button>
           </div>
         ) : (
@@ -78,7 +77,6 @@ export default function CoursesPage() {
                   onClick={() => router.push(`/creator/courses/${course.id}`)}
                   className="bg-white rounded-2xl border border-stone-200 p-5 flex items-center gap-4 cursor-pointer hover:border-violet-300 hover:shadow-sm transition-all">
                   <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">📗</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-stone-800 truncate">{course.title}</h3>

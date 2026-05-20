@@ -76,9 +76,7 @@ export function MatchingEngine({ data, config, onComplete }: GameEngineProps<Mat
             <p className="text-xs font-bold text-stone-400 text-center uppercase tracking-wide">A</p>
             {leftCards.map((card) => (
               <button key={card.id} type="button" onClick={() => handleClick(card)} className={cardCls(card)}>
-                {matched.includes(card.pairId)
-                  ? <span className="text-green-500 text-xl">✓</span>
-                  : <MediaRenderer content={card.content} size="sm" />}
+                <MediaRenderer content={card.content} size="sm" />
               </button>
             ))}
           </div>
@@ -87,9 +85,7 @@ export function MatchingEngine({ data, config, onComplete }: GameEngineProps<Mat
             <p className="text-xs font-bold text-stone-400 text-center uppercase tracking-wide">B</p>
             {rightCards.map((card) => (
               <button key={card.id} type="button" onClick={() => handleClick(card)} className={cardCls(card)}>
-                {matched.includes(card.pairId)
-                  ? <span className="text-green-500 text-xl">✓</span>
-                  : <MediaRenderer content={card.content} size="sm" />}
+                <MediaRenderer content={card.content} size="sm" />
               </button>
             ))}
           </div>

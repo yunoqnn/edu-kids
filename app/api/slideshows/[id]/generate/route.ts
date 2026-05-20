@@ -1,99 +1,150 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 /* --------------------------------------------------------------------------
    POST /api/slideshows/[id]/generate
-   Loops through all slides for this slideshow in order_index order,
-   calls the Chimege TTS API for each slide's script_text,
-   and saves the returned audio URL back to the slide row.
+   For each slide in order:
+     1. Call Chimege TTS → receive WAV binary
+     2. Upload WAV to Supabase Storage (game-media bucket)
+     3. Save public URL back to slides.audio_url
+   Voice is chosen based on the lesson type the slideshow belongs to.
    -------------------------------------------------------------------------- */
 
-const CHIMEGE_API_URL = process.env.CHIMEGE_API_URL ?? ''
-const CHIMEGE_API_KEY = process.env.CHIMEGE_API_KEY ?? ''
+const CHIMEGE_SYNTHESIZE_URL = 'https://api.chimege.com/v1.2/synthesize'
+
+/* Lesson type → Chimege voice-id mapping per Yuno's spec */
+const VOICE: Record<string, string> = {
+  FAIRY_TALE: 'FEMALE4v2',
+  LESSON:     'FEMALE3v2',
+}
+
+/* Strip characters Chimege rejects: only Cyrillic, spaces, and basic punctuation allowed */
+function sanitizeText(text: string): string {
+  return text
+    .replace(/[^\u0400-\u04FF\s?!.,\-'":]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 300)
+}
 
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: slideshowId } = await params
   const supabase = await createClient()
 
-  /* Verify auth */
+  /* Auth check */
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  /* Verify the slideshow belongs to this creator */
-  const { data: slideshow } = await supabase
+  const token = process.env.CHIMEGE_API_KEY
+  if (!token) {
+    return NextResponse.json({ error: 'CHIMEGE_API_KEY env var is not set' }, { status: 500 })
+  }
+
+  /* Get slideshow + lesson type in one query */
+  const { data: slideshow, error: swErr } = await supabase
     .from('slideshows')
-    .select('id, lesson_id')
+    .select('id, lesson_id, lessons ( type )')
     .eq('id', slideshowId)
     .single()
 
-  if (!slideshow) {
+  if (swErr || !slideshow) {
     return NextResponse.json({ error: 'Slideshow not found' }, { status: 404 })
   }
 
-  /* Fetch slides in order */
+  /* Determine voice from lesson type */
+  const lessonType: string = (slideshow.lessons as unknown as { type: string } | null)?.type ?? 'LESSON'
+  const voiceId = VOICE[lessonType] ?? 'FEMALE3v2'
+
+  /* Fetch all slides in order */
   const { data: slides, error: slidesErr } = await supabase
     .from('slides')
     .select('id, script_text')
     .eq('slideshow_id', slideshowId)
     .order('order_index')
 
-  if (slidesErr || !slides) {
-    return NextResponse.json({ error: 'Failed to fetch slides' }, { status: 500 })
+  if (slidesErr || !slides?.length) {
+    return NextResponse.json({ error: 'No slides found' }, { status: 404 })
   }
 
-  const results: { id: string; success: boolean }[] = []
+  const results: { id: string; success: boolean; error?: string }[] = []
 
   for (const slide of slides) {
-    if (!slide.script_text?.trim()) {
-      results.push({ id: slide.id, success: false })
+    const rawText = slide.script_text?.trim() ?? ''
+
+    if (!rawText) {
+      results.push({ id: slide.id, success: false, error: 'No script text' })
+      continue
+    }
+
+    const text = sanitizeText(rawText)
+
+    if (text.length < 2) {
+      results.push({ id: slide.id, success: false, error: 'Text too short after sanitization' })
       continue
     }
 
     try {
-      /* ----------------------------------------------------------------
-         Chimege TTS API call.
-         Replace the body structure below with the actual Chimege API
-         request format once you have the documentation.
-         Expected: send text, receive audio file URL.
-         ---------------------------------------------------------------- */
-      const ttsRes = await fetch(CHIMEGE_API_URL, {
+      /* Step 1: Call Chimege TTS — response is raw WAV bytes */
+      const ttsRes = await fetch(CHIMEGE_SYNTHESIZE_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${CHIMEGE_API_KEY}`,
+          /* Non-standard content-type matches Chimege docs exactly */
+          'Content-Type': 'plain/text',
+          'token': token,
+          'voice-id': voiceId,
         },
-        body: JSON.stringify({ text: slide.script_text }),
+        body: Buffer.from(text, 'utf-8'),
       })
 
       if (!ttsRes.ok) {
-        results.push({ id: slide.id, success: false })
+        const errCode = ttsRes.headers.get('Error-Code') ?? String(ttsRes.status)
+        results.push({ id: slide.id, success: false, error: `Chimege error code ${errCode}` })
         continue
       }
 
-      const ttsData = await ttsRes.json()
-      /* Adjust `ttsData.audio_url` to match the actual Chimege response field */
-      const audioUrl: string = ttsData.audio_url ?? ttsData.url ?? ''
+      /* Step 2: Read binary WAV response */
+      const wavBuffer = await ttsRes.arrayBuffer()
+      const wavBytes = new Uint8Array(wavBuffer)
 
-      if (!audioUrl) {
-        results.push({ id: slide.id, success: false })
+      /* Step 3: Upload WAV to Supabase Storage */
+      const audioPath = `audio/tts-${slideshowId}-${slide.id}-${Date.now()}.wav`
+
+      const { error: uploadErr } = await supabaseAdmin.storage
+        .from('game-media')
+        .upload(audioPath, wavBytes, {
+          contentType: 'audio/wav',
+          upsert: true,
+        })
+
+      if (uploadErr) {
+        results.push({ id: slide.id, success: false, error: uploadErr.message })
         continue
       }
 
-      await supabase
+      /* Step 4: Get public URL from storage */
+      const { data: urlData } = supabaseAdmin.storage
+        .from('game-media')
+        .getPublicUrl(audioPath)
+
+      /* Step 5: Save URL back to the slide row */
+      await supabaseAdmin
         .from('slides')
-        .update({ audio_url: audioUrl })
+        .update({ audio_url: urlData.publicUrl })
         .eq('id', slide.id)
 
       results.push({ id: slide.id, success: true })
-    } catch {
-      results.push({ id: slide.id, success: false })
+
+    } catch (err) {
+      results.push({ id: slide.id, success: false, error: String(err) })
     }
   }
 
-  return NextResponse.json({ results })
+  const successCount = results.filter((r) => r.success).length
+  return NextResponse.json({ results, successCount, total: slides.length })
 }

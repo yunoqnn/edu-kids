@@ -44,7 +44,7 @@ export default function NewCoursePage() {
         </div>
         <button onClick={handleSave} disabled={saving}
           className="px-5 py-2 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 disabled:opacity-50 transition-all">
-          {saving ? 'Үүсгэж байна...' : 'Курс үүсгэх'}
+          {saving ? 'Үүсгэж байна...' : 'Хичээл үүсгэх'}
         </button>
       </header>
 
@@ -54,14 +54,14 @@ export default function NewCoursePage() {
         )}
 
         <div>
-          <label className="block text-sm font-semibold text-stone-700 mb-2">Курсын нэр *</label>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Жишэ: Монгол үсэг таних — 1-р анги" className={inputCls} />
+          <label className="block text-sm font-semibold text-stone-700 mb-2">Хичээлийн нэр</label>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Хичээлийн нэр" className={inputCls} />
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-stone-700 mb-2">Тайлбар</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-            placeholder="Курсын тухай товч тайлбар..."
+            placeholder="Хичээлийн тухай товч тайлбар..."
             className={`${inputCls} resize-none`} />
         </div>
 
@@ -90,7 +90,7 @@ export default function NewCoursePage() {
               <button key={v} type="button" onClick={() => setVisibility(v)}
                 className={`flex-1 py-3 rounded-xl border-2 font-semibold text-sm transition-all
                   ${visibility === v ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-stone-200 bg-white text-stone-600 hover:border-violet-300'}`}>
-                {v === 'PUBLIC' ? '🌐 Нийтийн' : '🔒 Хувийн'}
+                {v === 'PUBLIC' ? 'Нээлттэй' : 'Хаалттай'}
               </button>
             ))}
           </div>

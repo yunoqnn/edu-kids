@@ -4,9 +4,9 @@ import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 const NAV = [
-  { label: 'Самбар', href: '/admin/dashboard', icon: '📊' },
-  { label: 'Хэрэглэгчид', href: '/admin/users', icon: '👥' },
-  { label: 'Контент хянах', href: '/admin/content', icon: '📋' },
+  { label: 'Самбар', href: '/admin/dashboard' },
+  { label: 'Хэрэглэгчид', href: '/admin/users' },
+  { label: 'Контент хянах', href: '/admin/content' },
 ]
 
 export default function AdminSidebar() {
@@ -47,7 +47,6 @@ export default function AdminSidebar() {
                   : 'text-stone-600 hover:bg-stone-100'
               }`}
             >
-              <span className="text-base">{item.icon}</span>
               {item.label}
             </button>
           )
@@ -60,7 +59,6 @@ export default function AdminSidebar() {
           onClick={handleSignOut}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-stone-500 hover:bg-stone-100 transition-all text-left"
         >
-          <span className="text-base">🚪</span>
           Гарах
         </button>
       </div>

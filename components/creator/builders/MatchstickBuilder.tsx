@@ -168,7 +168,7 @@ export function MatchstickBuilder({ value, onChange }: Props) {
 
       {validPair && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-xs text-green-700 font-medium">
-          ✓ {value.segments.filter((s) => s.movable).length} хөдлөх сегмент тодорхойлогдлоо. Тоглоом бэлэн.
+          {value.segments.filter((s) => s.movable).length} хөдлөх сегмент тодорхойлогдлоо. Тоглоом бэлэн.
         </div>
       )}
     </div>

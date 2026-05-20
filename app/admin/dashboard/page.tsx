@@ -1,10 +1,10 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 const STAT_CARDS = [
-  { key: 'totalUsers',     label: 'Нийт хэрэглэгч',     icon: '👥', color: 'bg-violet-50 text-violet-700' },
-  { key: 'totalCourses',   label: 'Нийт курс',           icon: '📚', color: 'bg-blue-50 text-blue-700' },
-  { key: 'pendingReviews', label: 'Хянах шаардлагатай', icon: '⏳', color: 'bg-amber-50 text-amber-700' },
-  { key: 'activeStudents', label: '30 хоногт идэвхтэй', icon: '🎮', color: 'bg-green-50 text-green-700' },
+  { key: 'totalUsers',     label: 'Нийт хэрэглэгч',     color: 'bg-violet-50 text-violet-700' },
+  { key: 'totalCourses',   label: 'Нийт курс',           color: 'bg-blue-50 text-blue-700' },
+  { key: 'pendingReviews', label: 'Хянах шаардлагатай', color: 'bg-amber-50 text-amber-700' },
+  { key: 'activeStudents', label: '30 хоногт идэвхтэй', color: 'bg-green-50 text-green-700' },
 ]
 
 async function getStats() {
@@ -40,7 +40,6 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {STAT_CARDS.map((card) => (
           <div key={card.key} className={`rounded-2xl p-5 ${card.color} border border-white`}>
-            <div className="text-2xl mb-2">{card.icon}</div>
             <div className="text-3xl font-bold">{stats[card.key as keyof typeof stats]}</div>
             <div className="text-xs font-semibold mt-1 opacity-80">{card.label}</div>
           </div>
@@ -52,7 +51,7 @@ export default async function AdminDashboard() {
           href="/admin/users"
           className="flex items-center gap-4 p-5 bg-white border border-stone-200 rounded-2xl hover:border-violet-300 hover:bg-violet-50 transition-all"
         >
-          <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">👥</div>
+          <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0"></div>
           <div>
             <div className="font-bold text-stone-800">Хэрэглэгчид</div>
             <div className="text-xs text-stone-400 mt-0.5">Хэрэглэгчдийг удирдах</div>
@@ -62,7 +61,7 @@ export default async function AdminDashboard() {
           href="/admin/content"
           className="flex items-center gap-4 p-5 bg-white border border-stone-200 rounded-2xl hover:border-violet-300 hover:bg-violet-50 transition-all"
         >
-          <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">📋</div>
+          <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0"></div>
           <div>
             <div className="font-bold text-stone-800">Контент хянах</div>
             <div className="text-xs text-stone-400 mt-0.5">

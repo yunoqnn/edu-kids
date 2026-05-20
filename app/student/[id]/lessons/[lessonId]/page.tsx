@@ -33,18 +33,6 @@ const GAME_LABELS: Record<string, string> = {
   MATCHSTICK:       'Matchstick',
 }
 
-const GAME_ICONS: Record<string, string> = {
-  SIMPLE_QUIZ:      '❓',
-  DRAG_DROP:        '🖱️',
-  MATCHING:         '🔗',
-  PATTERN:          '🔢',
-  ODD_ONE_OUT:      '🎯',
-  CATEGORY_SORT:    '📂',
-  SEQUENCE_REPEAT:  '🎵',
-  READ_REMEMBER:    '📖',
-  MATCHSTICK:       '🔥',
-}
-
 /* ---------- Page ---------- */
 export default function StudentLessonPage() {
   const router = useRouter()
@@ -113,7 +101,7 @@ export default function StudentLessonPage() {
         <div className="flex-1 min-w-0">
           <h1 className="font-bold text-stone-800 truncate">{lesson.title}</h1>
           <span className={`text-xs font-semibold ${isFairyTale ? 'text-amber-600' : 'text-violet-600'}`}>
-            {isFairyTale ? '📖 Үлгэр' : '📘 Хичээл'}
+            {isFairyTale ? 'Үлгэр' : 'Хичээл'}
           </span>
         </div>
       </header>
@@ -141,9 +129,6 @@ export default function StudentLessonPage() {
                 onClick={() => router.push(`/play/${ex.id}?studentId=${id}`)}
                 className="w-full bg-white rounded-2xl border-2 border-stone-200 p-4 flex items-center gap-4 text-left hover:border-violet-400 hover:bg-violet-50 active:scale-95 transition-all"
               >
-                <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
-                  {GAME_ICONS[ex.game_type] ?? '🎮'}
-                </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-stone-800">{ex.title}</div>
                   <div className="text-xs text-violet-600 font-semibold mt-0.5">
@@ -161,7 +146,6 @@ export default function StudentLessonPage() {
         {/* Empty state */}
         {!hasContent && (
           <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center">
-            <div className="text-4xl mb-3">📝</div>
             <p className="text-stone-500 font-medium text-sm">Агуулга удахгүй нэмэгдэнэ</p>
           </div>
         )}

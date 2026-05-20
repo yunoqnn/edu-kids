@@ -12,15 +12,14 @@ interface Props {
 export function GameResultScreen({ result, title, onPlayAgain }: Props) {
   const router = useRouter()
   const pct = Math.round((result.score / result.maxScore) * 100)
-  const { emoji, message, color } =
-    pct >= 80 ? { emoji: '🏆', message: 'Гайхалтай!',      color: '#7DD3A7' }
-    : pct >= 50 ? { emoji: '⭐', message: 'Сайн байна!',    color: '#FFC93C' }
-    :             { emoji: '💪', message: 'Дахин оролдоорой!', color: '#F26A6A' }
+  const { message, color } =
+    pct >= 80 ? { message: 'Гайхалтай!',      color: '#7DD3A7' }
+    : pct >= 50 ? { message: 'Сайн байна!',    color: '#FFC93C' }
+    :             { message: 'Дахин оролдоорой!', color: '#F26A6A' }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-amber-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-xl border border-stone-100 p-8 max-w-sm w-full text-center">
-        <div className="text-6xl mb-3">{emoji}</div>
         <h2 className="text-3xl font-bold mb-1" style={{ color }}>{message}</h2>
         <p className="text-stone-400 text-sm mb-6 truncate">{title}</p>
 

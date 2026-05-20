@@ -23,7 +23,7 @@ interface Course {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: 'Ноорог', PENDING_REVIEW: 'Хянагдаж байна', PUBLISHED: 'Нийтлэгдсэн', REJECTED: 'Татгалзсан',
+  DRAFT: 'Draft', PENDING_REVIEW: 'Хянагдаж байна', PUBLISHED: 'Нийтлэгдсэн', REJECTED: 'Татгалзсан',
 }
 
 export default function CourseDetailPage() {
@@ -107,7 +107,7 @@ export default function CourseDetailPage() {
           <span className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-sm font-bold">Хянагдаж байна</span>
         )}
         {course.status === 'PUBLISHED' && (
-          <span className="px-4 py-2 bg-green-100 text-green-700 rounded-xl text-sm font-bold">✓ Нийтлэгдсэн</span>
+          <span className="px-4 py-2 bg-green-100 text-green-700 rounded-xl text-sm font-bold">Нийтлэгдсэн</span>
         )}
       </header>
 
@@ -128,15 +128,20 @@ export default function CourseDetailPage() {
               </svg>
               <span className="font-bold text-stone-700 flex-1">{lesson.title}</span>
               <span className="text-xs text-stone-400">{lesson.exercises.length} дасгал</span>
-              <button type="button"
-                onClick={(e) => { e.stopPropagation(); router.push(`/creator/lessons/${lesson.id}`) }}
-                className="text-xs text-violet-600 hover:text-violet-700 font-semibold px-2 py-1 rounded-lg hover:bg-violet-50 transition-all">
-                Засах
-              </button>
+              <button
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation()
+    router.push(`/creator/lessons/${lesson.id}`)
+  }}
+  className="text-xs text-violet-600 hover:text-violet-700 font-semibold px-2 py-1 rounded-lg hover:bg-violet-50 transition-all flex-shrink-0"
+>
+  Засах
+</button>
               <button type="button" onClick={(e) => { e.stopPropagation(); togglePublishLesson(lesson.id, lesson.is_published) }}
                 className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all
                   ${lesson.is_published ? 'bg-green-100 text-green-700' : 'bg-stone-100 text-stone-500 hover:bg-green-50'}`}>
-                {lesson.is_published ? 'Нийтлэгдсэн' : 'Ноорог'}
+                {lesson.is_published ? 'Нийтлэгдсэн' : 'Draft'}
               </button>
               <button type="button" onClick={(e) => { e.stopPropagation(); deleteLesson(lesson.id) }}
                 className="text-stone-400 hover:text-red-500 transition-colors">

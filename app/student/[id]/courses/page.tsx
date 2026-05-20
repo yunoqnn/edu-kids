@@ -164,7 +164,6 @@ export default function StudentCoursesPage() {
         {/* Course list */}
         {courses.length === 0 ? (
           <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center">
-            <div className="text-4xl mb-3">📚</div>
             <p className="text-stone-500 font-medium text-sm">Курс байхгүй байна</p>
             <p className="text-stone-400 text-xs mt-1">Бусад ангиудыг шүүж үзнэ үү</p>
           </div>
@@ -191,7 +190,7 @@ export default function StudentCoursesPage() {
                     )}
                     {course.is_enrolled && (
                       <span className="text-xs px-2 py-1 rounded-lg font-semibold bg-green-100 text-green-700">
-                        ✓ Бүртгэлтэй
+                        Бүртгэлтэй
                       </span>
                     )}
                   </div>

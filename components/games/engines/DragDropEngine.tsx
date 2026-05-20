@@ -124,7 +124,6 @@ export function DragDropEngine({ data, config, onComplete }: GameEngineProps<Dra
                     ? <MediaRenderer content={item.content} size="sm" />
                     : <span className="text-stone-300 text-sm">↓</span>}
                 </div>
-                {checked && <span className="flex-shrink-0 text-xl">{isCorrect ? '✅' : '❌'}</span>}
               </div>
             )
           })}
@@ -154,7 +153,7 @@ export function DragDropEngine({ data, config, onComplete }: GameEngineProps<Dra
         {allPlaced && !checked && (
           <button onClick={() => finishRound(false)}
             className="mt-5 w-full py-4 bg-violet-600 text-white rounded-2xl font-bold text-lg hover:bg-violet-700 active:scale-95 transition-all">
-            Шалгах ✓
+            Шалгах
           </button>
         )}
         {checked && (

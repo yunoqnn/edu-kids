@@ -91,7 +91,7 @@ export function GameBuilder({ lessonId, exerciseId, initialType = 'SIMPLE_QUIZ',
       <div className="relative">
         <button onClick={() => setShowPreview(false)}
           className="fixed top-4 right-4 z-50 bg-stone-800 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-stone-900">
-          ✕ Хаах
+          Хаах
         </button>
         <Engine data={gameData} config={config} onComplete={() => setShowPreview(false)} />
       </div>

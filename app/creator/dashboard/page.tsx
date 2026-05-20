@@ -9,7 +9,7 @@ interface Stats { total: number; published: number; pending: number; draft: numb
 interface RecentCourse { id: string; title: string; status: string; created_at: string }
 
 const STATUS_STYLES: Record<string, { label: string; dot: string }> = {
-  DRAFT:          { label: 'Ноорог',          dot: 'bg-stone-400' },
+  DRAFT:          { label: 'Draft',          dot: 'bg-stone-400' },
   PENDING_REVIEW: { label: 'Хянагдаж байна', dot: 'bg-amber-400' },
   PUBLISHED:      { label: 'Нийтлэгдсэн',    dot: 'bg-green-500' },
   REJECTED:       { label: 'Татгалзсан',      dot: 'bg-red-400' },
@@ -83,7 +83,7 @@ export default function CreatorDashboard() {
         {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-stone-800" style={{ fontFamily: 'DM Serif Display, serif' }}>
-            Сайн байна уу, {name} 👋
+            Сайн байна уу, {name}
           </h1>
           <p className="text-stone-500 text-sm mt-1">Таны контент удирдлагын самбар</p>
         </div>
@@ -91,13 +91,12 @@ export default function CreatorDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Нийт курс',        val: stats.total,     color: 'bg-violet-50 text-violet-700', icon: '📚' },
-            { label: 'Нийтлэгдсэн',      val: stats.published, color: 'bg-green-50 text-green-700',   icon: '✅' },
-            { label: 'Хянагдаж байгаа',  val: stats.pending,   color: 'bg-amber-50 text-amber-700',   icon: '⏳' },
-            { label: 'Ноорог',           val: stats.draft,     color: 'bg-stone-100 text-stone-600',  icon: '📝' },
+            { label: 'Нийт курс',        val: stats.total,     color: 'bg-violet-50 text-violet-700' },
+            { label: 'Нийтлэгдсэн',      val: stats.published, color: 'bg-green-50 text-green-700'   },
+            { label: 'Хянагдаж байгаа',  val: stats.pending,   color: 'bg-amber-50 text-amber-700'   },
+            { label: 'Draft',           val: stats.draft,     color: 'bg-stone-100 text-stone-600'  },
           ].map((s) => (
             <div key={s.label} className={`rounded-2xl p-5 ${s.color} border border-white`}>
-              <div className="text-2xl mb-1">{s.icon}</div>
               <div className="text-3xl font-bold">{s.val}</div>
               <div className="text-xs font-semibold mt-1 opacity-80">{s.label}</div>
             </div>
@@ -108,15 +107,15 @@ export default function CreatorDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <button onClick={() => router.push('/creator/courses/new')}
             className="flex items-center gap-4 p-5 bg-violet-600 text-white rounded-2xl hover:bg-violet-700 active:scale-95 transition-all text-left shadow-lg shadow-violet-200">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">➕</div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0"></div>
             <div>
-              <div className="font-bold text-base">Шинэ курс үүсгэх</div>
+              <div className="font-bold text-base">Шинэ хичээл үүсгэх</div>
               <div className="text-violet-200 text-xs mt-0.5">Хичээл, дасгалаа нэмнэ үү</div>
             </div>
           </button>
           <button onClick={() => router.push('/creator/courses')}
             className="flex items-center gap-4 p-5 bg-white border border-stone-200 rounded-2xl hover:border-violet-300 hover:bg-violet-50 active:scale-95 transition-all text-left">
-            <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">📚</div>
+            <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0"></div>
             <div>
               <div className="font-bold text-base text-stone-800">Миний курсууд</div>
               <div className="text-stone-400 text-xs mt-0.5">Бүх курсыг харах, засах</div>

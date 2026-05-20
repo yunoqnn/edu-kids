@@ -173,7 +173,6 @@ export default function StudentPage() {
 
           {exercises.length === 0 ? (
             <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center">
-              <div className="text-4xl mb-3">📚</div>
               <p className="text-stone-500 font-medium text-sm">Одоогоор дасгал байхгүй байна</p>
               <p className="text-stone-400 text-xs mt-1">Эцэг эх курст бүртгэх шаардлагатай</p>
             </div>
@@ -185,18 +184,6 @@ export default function StudentPage() {
                   onClick={() => router.push(`/play/${ex.id}?studentId=${student.id}`)}
                   className="w-full bg-white rounded-2xl border-2 border-stone-200 p-4 flex items-center gap-4 text-left hover:border-violet-400 hover:bg-violet-50 active:scale-95 transition-all"
                 >
-                  {/* Game type badge */}
-                  <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
-                    {ex.game_type === 'SIMPLE_QUIZ'     ? '❓'
-                     : ex.game_type === 'DRAG_DROP'     ? '🖱'
-                     : ex.game_type === 'MATCHING'      ? '🔗'
-                     : ex.game_type === 'PATTERN'       ? '🔢'
-                     : ex.game_type === 'ODD_ONE_OUT'   ? '🎯'
-                     : ex.game_type === 'CATEGORY_SORT' ? '📂'
-                     : ex.game_type === 'SEQUENCE_REPEAT' ? '🎵'
-                     : ex.game_type === 'READ_REMEMBER' ? '📖'
-                     : '🎮'}
-                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-stone-800 truncate">{ex.title}</div>
                     <div className="flex items-center gap-2 mt-0.5">

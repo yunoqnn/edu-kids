@@ -199,17 +199,16 @@ export default function HomePage() {
             >
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: '🎮', title: 'Memory Games', bg: '#E8F1F8' },
-                  { icon: '🧩', title: 'Drag & Drop', bg: '#E8F5F4' },
-                  { icon: '🔢', title: 'Number Sequence', bg: '#F8E8E8' },
-                  { icon: '🎯', title: 'Challenges', bg: '#F0E8F8' },
+                  { title: 'Memory Games', bg: '#E8F1F8' },
+                  { title: 'Drag & Drop', bg: '#E8F5F4' },
+                  { title: 'Number Sequence', bg: '#F8E8E8' },
+                  { title: 'Challenges', bg: '#F0E8F8' },
                 ].map((game) => (
                   <div
                     key={game.title}
                     className="p-6 rounded-2xl text-center"
                     style={{ background: game.bg }}
                   >
-                    <div className="text-4xl mb-3">{game.icon}</div>
                     <div className="font-bold" style={{ color: 'var(--text)' }}>{game.title}</div>
                   </div>
                 ))}
@@ -301,17 +300,16 @@ export default function HomePage() {
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: '✏️', text: 'Content Creator' },
-                  { icon: '📊', text: 'Analytics Dashboard' },
-                  { icon: '👥', text: 'Student Management' },
-                  { icon: '🎯', text: 'Custom Assignments' },
+                  { text: 'Content Creator' },
+                  { text: 'Analytics Dashboard' },
+                  { text: 'Student Management' },
+                  { text: 'Custom Assignments' },
                 ].map((item) => (
                   <div
                     key={item.text}
                     className="flex items-center gap-3 p-4 rounded-xl"
                     style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
                   >
-                    <span className="text-2xl">{item.icon}</span>
                     <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{item.text}</span>
                   </div>
                 ))}
@@ -463,7 +461,7 @@ export default function HomePage() {
               © 2026 StudyComp. All rights reserved.
             </span>
             <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Made with ❤️ for young learners
+              Made with love for young learners
             </span>
           </div>
         </div>

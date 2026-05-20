@@ -77,9 +77,7 @@ export function SimpleQuizEngine({ data, config, onComplete }: GameEngineProps<S
                 ${showFeedback && q.options.find((o) => o.id === opt.id)?.isCorrect ? 'bg-green-500 text-white'
                   : showFeedback && opt.id === selected ? 'bg-red-400 text-white'
                   : 'bg-stone-100 text-stone-600'}`}>
-                {showFeedback && opt.id === selected
-                  ? (q.options.find((o) => o.id === opt.id)?.isCorrect ? '✓' : '✗')
-                  : LABELS[i]}
+                {LABELS[i]}
               </span>
               <MediaRenderer content={opt.content} size="sm" />
             </button>
@@ -88,7 +86,7 @@ export function SimpleQuizEngine({ data, config, onComplete }: GameEngineProps<S
 
         {showFeedback && q.explanation && (
           <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800 font-medium">
-            💡 {q.explanation}
+            {q.explanation}
           </div>
         )}
 

@@ -94,7 +94,7 @@ export function ReadRememberEngine({ data, config, onComplete }: GameEngineProps
                     ${showFeedback && opt.isCorrect ? 'bg-green-500 text-white'
                       : showFeedback && isSelected ? 'bg-red-400 text-white'
                       : 'bg-stone-100 text-stone-600'}`}>
-                    {showFeedback && isSelected ? (opt.isCorrect ? '✓' : '✗') : LABELS[i]}
+                    {LABELS[i]}
                   </span>
                   <span className="font-medium text-stone-700">{opt.text}</span>
                 </button>

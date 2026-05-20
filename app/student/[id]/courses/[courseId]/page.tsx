@@ -105,7 +105,7 @@ export default function StudentCourseDetailPage() {
         <h1 className="font-bold text-stone-800 flex-1 truncate">{course.title}</h1>
         {isEnrolled ? (
           <span className="text-xs px-3 py-2 bg-green-100 text-green-700 rounded-xl font-semibold flex-shrink-0">
-            ✓ Бүртгэлтэй
+            Бүртгэлтэй
           </span>
         ) : (
           <button
@@ -145,7 +145,6 @@ export default function StudentCourseDetailPage() {
         {/* Lesson list */}
         {lessons.length === 0 ? (
           <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center">
-            <div className="text-4xl mb-3">📖</div>
             <p className="text-stone-500 font-medium text-sm">Хичээл байхгүй байна</p>
           </div>
         ) : (
@@ -165,7 +164,7 @@ export default function StudentCourseDetailPage() {
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0
                     ${isFairyTale ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'}`}>
-                    {isFairyTale ? '📖' : idx + 1}
+                    {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-stone-800 truncate">{lesson.title}</div>

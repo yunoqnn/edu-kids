@@ -26,15 +26,14 @@ export default function DashboardShell({ role, name, children, navItems, activeP
         {/* Logo */}
         <div style={{ padding: '0 24px 24px', borderBottom: '1.5px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 22 }}>🎓</span>
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--primary)' }}>StudyComp</span>
           </div>
         </div>
 
         {/* User info */}
         <div style={{ padding: '16px 24px', borderBottom: '1.5px solid var(--border)' }}>
-          <div style={{ width: 40, height: 40, background: 'var(--primary-pale)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, marginBottom: 8 }}>
-            {role === 'PARENT' ? '👨‍👩‍👧' : '✏️'}
+          <div style={{ width: 40, height: 40, background: 'var(--primary-pale)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--primary)' }}>
+            {role === 'PARENT' ? 'P' : 'CC'}
           </div>
           <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{name}</div>
           <div className="tag" style={{ marginTop: 4, fontSize: 11, padding: '3px 8px' }}>
@@ -67,7 +66,7 @@ export default function DashboardShell({ role, name, children, navItems, activeP
             onMouseOver={(e) => (e.currentTarget.style.background = '#fef2f2')}
             onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            🚪 Гарах
+            Гарах
           </button>
         </div>
       </aside>

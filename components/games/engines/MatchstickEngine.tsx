@@ -115,13 +115,13 @@ export function MatchstickEngine({ data, config, onComplete }: GameEngineProps<M
           </div>
 
           {data.hint && !checked && (
-            <p className="text-center text-amber-600 text-sm mt-4">💡 {data.hint}</p>
+            <p className="text-center text-amber-600 text-sm mt-4">{data.hint}</p>
           )}
 
           {checked && (
             <div className={`mt-4 rounded-2xl p-4 text-center font-bold text-lg
               ${correct ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
-              {correct ? '🎉 Зөв!' : '😅 Буруу байна'}
+              {correct ? 'Зөв!' : 'Буруу байна'}
             </div>
           )}
         </div>
@@ -133,7 +133,7 @@ export function MatchstickEngine({ data, config, onComplete }: GameEngineProps<M
         {!checked && (
           <button onClick={check} disabled={moveCount === 0}
             className="w-full py-4 bg-violet-600 text-white rounded-2xl font-bold text-lg hover:bg-violet-700 disabled:opacity-50 active:scale-95 transition-all">
-            Шалгах ✓
+            Шалгах
           </button>
         )}
         {checked && (

@@ -103,7 +103,7 @@ export function PatternEngine({ data, config, onComplete }: GameEngineProps<Patt
               {!showFeedback && (
                 <button onClick={handleTextSubmit}
                   className="px-4 py-3 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 active:scale-95 transition-all">
-                  ✓
+                  OK
                 </button>
               )}
             </div>
