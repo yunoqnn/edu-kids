@@ -159,6 +159,8 @@ export default function LessonEditorPage() {
   const [savedOk, setSavedOk] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [genResult, setGenResult] = useState<{ successCount: number; total: number } | null>(null)
+  const [createError, setCreateError] = useState('')
+  const [creating, setCreating] = useState(false)
 
   /* Form state */
   const [title, setTitle] = useState('')
@@ -224,11 +226,19 @@ export default function LessonEditorPage() {
 
   /* ---------- Үзүүлэн actions ---------- */
   const createҮзүүлэн = async () => {
-    const { data } = await supabase
+    setCreating(true)
+    setCreateError('')
+    const { data, error } = await supabase
       .from('үзүүлэнs')
-      .insert({ lesson_id: lessonId, title: title })
+      .insert({ lesson_id: lessonId, title: title || 'Үзүүлэн' })
       .select('id, title')
       .single()
+    setCreating(false)
+    if (error) {
+      setCreateError(error.message)
+      console.error('Create үзүүлэн error:', error)
+      return
+    }
     if (data) setҮзүүлэн(data)
   }
 
@@ -385,12 +395,18 @@ export default function LessonEditorPage() {
           </div>
 
           {!үзүүлэн ? (
-            <button
-              onClick={createҮзүүлэн}
-              className="w-full py-4 border-2 border-dashed border-stone-300 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-400 hover:bg-violet-50 transition-all"
-            >
-              + Хичээлийн үзүүлэн нэмэх
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={createҮзүүлэн}
+                disabled={creating}
+                className="w-full py-4 border-2 border-dashed border-stone-300 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {creating ? 'Үүсгэж байна...' : '+ Хичээлийн үзүүлэн нэмэх'}
+              </button>
+              {createError && (
+                <p className="text-xs text-red-500 font-medium px-1">{createError}</p>
+              )}
+            </div>
           ) : (
             <div className="space-y-3">
               {slides.map((slide, idx) => (
