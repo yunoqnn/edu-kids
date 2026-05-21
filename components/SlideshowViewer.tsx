@@ -58,9 +58,9 @@ export default function SlideshowViewer({ slideshowId, accentColor = '#7AD1D1' }
       {/* Image */}
       {slide.image_url ? (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={slide.image_url} alt={`Слайд ${current + 1}`} style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block' }} />
+        <img src={slide.image_url} alt={`Слайд ${current + 1}`} style={{ width: '100%', height: '80vh', maxHeight: '80vh', objectFit: 'cover', display: 'block' }} />
       ) : (
-        <div style={{ width: '100%', height: 180, background: `linear-gradient(135deg, #FFF3D6, #E5F7F7)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '100%', height: '70vh', background: `linear-gradient(135deg, #FFF3D6, #E5F7F7)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5" strokeLinecap="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>
           </svg>

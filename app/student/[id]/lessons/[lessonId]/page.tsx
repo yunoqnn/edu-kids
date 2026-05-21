@@ -71,7 +71,7 @@ export default function StudentLessonPage() {
       <div style={{ minHeight: '100vh', background: isFT ? `linear-gradient(180deg,#FFF3D6 0%,${BG} 20%,${BG} 100%)` : `linear-gradient(180deg,#E5F7F7 0%,${BG} 20%,${BG} 100%)`, fontFamily: 'Nunito, sans-serif', paddingBottom: 40 }}>
 
         {/* Header */}
-        <div style={{ background: hdrColor, borderRadius: '0 0 24px 24px', padding: '16px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: hdrColor, borderRadius: '0 0 20px 20px', padding: '10px 20px 12px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
             <button onClick={() => router.push(`/student/${id}`)}
@@ -88,7 +88,7 @@ export default function StudentLessonPage() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 20px 0' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 24px 0' }}>
 
           {lesson.text_content && (
             <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '24px', marginBottom: 20 }}>

@@ -65,6 +65,17 @@ const GAME_LABELS: Record<string, string> = {
   SEQUENCE_REPEAT: 'Дараалал давтах', READ_REMEMBER: 'Уншиж санаарай', MATCHSTICK: 'Хутга',
 }
 
+async function deleteExerciseById(exerciseId: string) {
+  const response = await fetch(`/api/creator/exercises/${encodeURIComponent(exerciseId)}`, {
+    method: 'DELETE',
+  })
+  const body = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(body.error ?? 'Дасгал устгахад алдаа гарлаа')
+  }
+}
+
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -750,10 +761,15 @@ function CourseDetailView({ course, onBack, onRefresh }: {
                           }}>Засах</button>
                           <button onClick={async () => {
                             if (!window.confirm(`"${ex.title}" дасгалыг устгах уу?`)) return
-                            await supabase.from('exercises').delete().eq('id', ex.id)
-                            setLocalLessons(prev => prev.map(l => l.id === lesson.id
-                              ? { ...l, exercises: l.exercises.filter(e => e.id !== ex.id) }
-                              : l))
+                            try {
+                              await deleteExerciseById(ex.id)
+                              setLocalLessons(prev => prev.map(l => l.id === lesson.id
+                                ? { ...l, exercises: l.exercises.filter(e => e.id !== ex.id) }
+                                : l))
+                              onRefresh()
+                            } catch (error) {
+                              window.alert(error instanceof Error ? error.message : 'Дасгал устгахад алдаа гарлаа')
+                            }
                           }} title="Устгах" style={{
                             background: 'transparent', border: 'none', borderRadius: 7, padding: '5px 8px',
                             cursor: 'pointer', color: '#D1D5DB', transition: 'all 0.15s',
@@ -1076,8 +1092,12 @@ function ExercisesPanel({ courses, onRefresh }: { courses: Course[]; onCreateNew
 
   const handleDeleteExercise = async (exId: string, title: string) => {
     if (!window.confirm(`"${title}" дасгалыг устгах уу?`)) return
-    await supabase.from('exercises').delete().eq('id', exId)
-    onRefresh()
+    try {
+      await deleteExerciseById(exId)
+      onRefresh()
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Дасгал устгахад алдаа гарлаа')
+    }
   }
 
   return (
@@ -1388,6 +1408,9 @@ function CreateLessonModal({ onClose, courses, onCreated }: {
 }) {
   const [title, setTitle] = useState('')
   const [courseId, setCourseId] = useState(courses[0]?.id ?? '')
+  useEffect(() => {
+    if (!courseId && courses.length > 0) setCourseId(courses[0].id)
+  }, [courses, courseId])
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [err, setErr] = useState('')
@@ -1449,7 +1472,7 @@ function CreateLessonModal({ onClose, courses, onCreated }: {
           ) : (
             <>
               <ModalSelect label="Хөтөлбөр" required value={courseId} onChange={setCourseId}
-                options={courses.map(c => ({ value: c.id, label: `${c.title} (${c.grade_level ?? '?'}-р анги)` }))} />
+                options={courses.map(c => ({ value: c.id, label: c.grade_level ? `${c.title} (${c.grade_level}-р анги)` : c.title }))} />
               <ModalInput label="Хичээлийн нэр" required placeholder="Жишээ: Үсэг таних" value={title} onChange={setTitle} autoFocus />
               {err && <p style={{ fontSize: 13, color: '#DC2626', marginBottom: 12 }}>{err}</p>}
               <button onClick={handleSave} disabled={!title.trim() || !courseId || saving} style={{

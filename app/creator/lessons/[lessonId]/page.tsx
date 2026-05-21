@@ -15,14 +15,14 @@ interface Lesson {
   course_id: string
 }
 
-interface Үзүүлэн {
+interface Slideshow {
   id: string
   title: string
 }
 
 interface Slide {
   id: string
-  үзүүлэн_id: string
+  slideshow_id: string
   image_url: string | null
   script_text: string
   audio_url: string | null
@@ -152,7 +152,7 @@ export default function LessonEditorPage() {
   const { upload, uploading } = useMediaUpload()
 
   const [lesson, setLesson] = useState<Lesson | null>(null)
-  const [үзүүлэн, setҮзүүлэн] = useState<Үзүүлэн | null>(null)
+  const [slideshow, setSlideshow] = useState<Slideshow | null>(null)
   const [slides, setSlides] = useState<Slide[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -183,17 +183,17 @@ export default function LessonEditorPage() {
     }
 
     const { data: sw } = await supabase
-      .from('үзүүлэнs')
+      .from('slideshows')
       .select('id, title')
       .eq('lesson_id', lessonId)
       .maybeSingle()
 
     if (sw) {
-      setҮзүүлэн(sw)
+      setSlideshow(sw)
       const { data: sl } = await supabase
         .from('slides')
         .select('*')
-        .eq('үзүүлэн_id', sw.id)
+        .eq('slideshow_id', sw.id)
         .order('order_index')
       setSlides((sl as Slide[]) ?? [])
     }
@@ -224,29 +224,29 @@ export default function LessonEditorPage() {
     setTimeout(() => setSavedOk(false), 2000)
   }
 
-  /* ---------- Үзүүлэн actions ---------- */
-  const createҮзүүлэн = async () => {
+  /* ---------- Slideshow actions ---------- */
+  const createSlideshow = async () => {
     setCreating(true)
     setCreateError('')
     const { data, error } = await supabase
-      .from('үзүүлэнs')
-      .insert({ lesson_id: lessonId, title: title || 'Үзүүлэн' })
+      .from('slideshows')
+      .insert({ lesson_id: lessonId, title: title || 'Slideshow' })
       .select('id, title')
       .single()
     setCreating(false)
     if (error) {
       setCreateError(error.message)
-      console.error('Create үзүүлэн error:', error)
+      console.error('Create slideshow error:', error)
       return
     }
-    if (data) setҮзүүлэн(data)
+    if (data) setSlideshow(data)
   }
 
   const addSlide = async () => {
-    if (!үзүүлэн) return
+    if (!slideshow) return
     const { data } = await supabase
       .from('slides')
-      .insert({ үзүүлэн_id: үзүүлэн.id, script_text: '', order_index: slides.length })
+      .insert({ slideshow_id: slideshow.id, script_text: '', order_index: slides.length })
       .select('*')
       .single()
     if (data) setSlides((prev) => [...prev, data as Slide])
@@ -275,17 +275,17 @@ export default function LessonEditorPage() {
   }
 
   const generateAudio = async () => {
-    if (!үзүүлэн) return
+    if (!slideshow) return
     setGenerating(true)
     setGenResult(null)
-    const res = await fetch(`/api/үзүүлэнs/${үзүүлэн.id}/generate`, { method: 'POST' })
+    const res = await fetch(`/api/slideshows/${slideshow.id}/generate`, { method: 'POST' })
     if (res.ok) {
       const json = await res.json()
       setGenResult({ successCount: json.successCount, total: json.total })
       const { data: sl } = await supabase
         .from('slides')
         .select('*')
-        .eq('үзүүлэн_id', үзүүлэн.id)
+        .eq('slideshow_id', slideshow.id)
         .order('order_index')
       setSlides((sl as Slide[]) ?? [])
     }
@@ -372,7 +372,7 @@ export default function LessonEditorPage() {
           </div>
         </div>
 
-        {/* Үзүүлэн card */}
+        {/* Slideshow card */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-stone-700">Хичээлийн үзүүлэн</h2>
@@ -382,7 +382,7 @@ export default function LessonEditorPage() {
                   {genResult.successCount}/{genResult.total} слайд амжилттай
                 </span>
               )}
-              {үзүүлэн && slides.length > 0 && slides.some((s) => s.script_text) && (
+              {slideshow && slides.length > 0 && slides.some((s) => s.script_text) && (
                 <button
                   onClick={generateAudio}
                   disabled={generating}
@@ -394,10 +394,10 @@ export default function LessonEditorPage() {
             </div>
           </div>
 
-          {!үзүүлэн ? (
+          {!slideshow ? (
             <div className="space-y-2">
               <button
-                onClick={createҮзүүлэн}
+                onClick={createSlideshow}
                 disabled={creating}
                 className="w-full py-4 border-2 border-dashed border-stone-300 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
