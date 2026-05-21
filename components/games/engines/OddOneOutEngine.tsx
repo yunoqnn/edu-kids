@@ -49,7 +49,7 @@ export function OddOneOutEngine({ data, config, onComplete }: GameEngineProps<Od
       <div className="w-full max-w-lg">
         <div className="text-center mb-6">
           <span className="inline-block bg-amber-100 text-amber-800 rounded-full px-4 py-1.5 text-sm font-bold">
-            Үлдсэнтэйгээ таарахгүй нэгийг сонго
+            Аль нь илүүц вэ?
           </span>
         </div>
 

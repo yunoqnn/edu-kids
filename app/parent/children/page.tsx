@@ -218,7 +218,7 @@ export default function ChildrenPage() {
       <div style={{ minHeight: '100vh', background: BG, fontFamily: 'Nunito, sans-serif' }}>
 
         {/* Top bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', maxWidth: 560, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 48px', maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 36, height: 36, borderRadius: 12, background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -236,10 +236,10 @@ export default function ChildrenPage() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 24px 60px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 48px 80px' }}>
 
           {/* Greeting */}
-          <div style={{ textAlign: 'center', marginTop: 24, marginBottom: 36 }}>
+          <div style={{ textAlign: 'center', marginTop: 40, marginBottom: 48 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: T, background: '#E5F7F7', display: 'inline-block', padding: '6px 16px', borderRadius: 20, marginBottom: 14 }}>
               {greeting()}
             </div>
@@ -253,8 +253,9 @@ export default function ChildrenPage() {
           {students.length > 0 && (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: students.length <= 2 ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(148px, 1fr))',
-              gap: 14, marginBottom: 24,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap: 20, marginBottom: 32,
+              maxWidth: 1100, margin: '0 auto 32px',
             }}>
               {students.map(s => (
                 <ChildCard key={s.id} student={s} onClick={() => router.push(`/student/${s.id}`)} />
@@ -275,7 +276,7 @@ export default function ChildrenPage() {
 
           {/* Create form */}
           {(showForm || students.length === 0) && (
-            <div style={{ background: 'white', borderRadius: 28, border: `1.5px solid ${BR}`, padding: '32px', boxShadow: '0 16px 48px rgba(0,0,0,0.07)', maxWidth: 460, margin: '0 auto' }}>
+            <div style={{ background: 'white', borderRadius: 28, border: `1.5px solid ${BR}`, padding: '40px', boxShadow: '0 16px 48px rgba(0,0,0,0.07)', maxWidth: 520, margin: '0 auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 800, color: TX, margin: 0 }}>Хүүхдийн профайл</h2>
                 {students.length > 0 && (
