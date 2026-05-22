@@ -41,7 +41,8 @@ export default function PlayPage() {
   const handleComplete = async (res: GameResult) => {
     setResult(res)
     /* Save attempt — student context needed; for now save with anon student_id */
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) return
     /* Find student_id for this user's child currently playing */
     /* TODO: pass studentId via URL param when routing from student dashboard */

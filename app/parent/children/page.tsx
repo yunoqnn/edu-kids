@@ -166,18 +166,19 @@ export default function ChildrenPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { router.push('/'); return }
-      if (data.user.user_metadata?.role !== 'PARENT') { router.push('/'); return }
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       await supabase.from('profiles').upsert({
-        id: data.user.id, email: data.user.email ?? '',
-        name: data.user.user_metadata?.name ?? 'User', role: 'PARENT',
+        id: user!.id, email: user!.email ?? '',
+        name: user!.user_metadata?.name ?? 'User', role: 'PARENT',
       }, { onConflict: 'id' })
-      setParentName(data.user.user_metadata?.name || '')
-      setUserId(data.user.id)
-      await fetchStudents(data.user.id)
+      setParentName(user!.user_metadata?.name || '')
+      setUserId(user!.id)
+      await fetchStudents(user!.id)
       setLoading(false)
-    })
+    }
+    init()
   }, [router])
 
   const fetchStudents = async (uid: string) => {

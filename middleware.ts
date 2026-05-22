@@ -43,9 +43,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  /* Pass verified user id to pages so they skip a second getUser() call */
+  if (user) {
+    response.headers.set('x-user-id', user.id)
+    response.headers.set('x-user-role', user.user_metadata?.role ?? '')
+  }
+
   return response
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|videos).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images|videos|api).*)'],
 }

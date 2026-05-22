@@ -8,12 +8,7 @@ export default function ParentDashboard() {
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/'); return }
-      const role = data.user.user_metadata?.role
-      if (role !== 'PARENT') { router.push('/'); return }
-      router.replace('/parent/children')
-    })
+    router.replace('/parent/children')
   }, [router])
 
   return (

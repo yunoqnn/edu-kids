@@ -16,7 +16,8 @@ export default function NewCoursePage() {
   const handleSave = async () => {
     if (!title.trim()) { setError('Гарчиг оруулна уу'); return }
     setSaving(true)
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
     if (!user) { router.push('/'); return }
     const { data, error: err } = await supabase.from('courses').insert({
       creator_id: user.id,

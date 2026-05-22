@@ -224,8 +224,8 @@ function CreatorShellInner({ children }: { children: React.ReactNode }) {
   const [name, setName] = useState('')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setName(data.user.user_metadata?.name || '')
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setName(session.user.user_metadata?.name || '')
     })
   }, [])
 

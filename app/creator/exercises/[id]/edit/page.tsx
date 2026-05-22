@@ -13,8 +13,7 @@ function EditExercisePage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: auth }) => {
-      if (!auth.user || auth.user.user_metadata?.role !== 'CONTENT_CREATOR') { router.push('/'); return }
+    const load = async () => {
       const { data: ex, error: err } = await supabase
         .from('exercises')
         .select('lesson_id, game_type, game_data, game_config, title')
@@ -22,7 +21,8 @@ function EditExercisePage() {
         .single()
       if (err || !ex) { setError('Дасгал олдсонгүй'); return }
       setData({ lessonId: ex.lesson_id, gameType: ex.game_type, gameData: ex.game_data, config: ex.game_config, title: ex.title })
-    })
+    }
+    load()
   }, [id, router])
 
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500 font-bold">{error}</div>

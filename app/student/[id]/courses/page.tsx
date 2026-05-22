@@ -39,7 +39,8 @@ export default function StudentCoursesPage() {
   /* ---------- Load student then courses ---------- */
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) { router.push('/'); return }
 
       const { data: s } = await supabase

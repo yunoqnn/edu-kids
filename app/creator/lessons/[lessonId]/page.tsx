@@ -202,13 +202,7 @@ export default function LessonEditorPage() {
   }
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user || data.user.user_metadata?.role !== 'CONTENT_CREATOR') {
-        router.push('/')
-        return
-      }
       load()
-    })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId])
 

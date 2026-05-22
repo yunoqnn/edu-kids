@@ -176,7 +176,8 @@ export default function StudentPage() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       if (!user) { router.push('/'); return }
 
       const { data: s } = await supabase.from('students').select('*').eq('id', id).eq('parent_id', user.id).single()

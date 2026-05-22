@@ -1327,12 +1327,12 @@ function CreateCourseModal({ onClose, onSave }: { onClose: () => void; onSave: (
   const handleSave = async () => {
     if (!title.trim()) return
     setSaving(true)
-    const { data: userRes } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
     const { data, error } = await supabase.from('courses').insert({
       title: title.trim(),
       description: description.trim() || null,
       grade_level: parseInt(gradeLevel),
-      creator_id: userRes.user!.id,
+      creator_id: session!.user.id,
       status: 'DRAFT',
     }).select().single()
     if (error) { setErr(error.message); setSaving(false); return }
@@ -1506,18 +1506,19 @@ function CreatorDashboardInner() {
   const [modal, setModal] = useState<'course' | 'lesson' | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { router.push('/'); return }
-      if (data.user.user_metadata?.role !== 'CONTENT_CREATOR') { router.push('/'); return }
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user
       await supabase.from('profiles').upsert({
-        id: data.user.id, email: data.user.email ?? '',
-        name: data.user.user_metadata?.name ?? 'User', role: 'CONTENT_CREATOR',
+        id: user!.id, email: user!.email ?? '',
+        name: user!.user_metadata?.name ?? 'User', role: 'CONTENT_CREATOR',
       }, { onConflict: 'id' })
-      setName(data.user.user_metadata?.name || 'Бүтээгч')
-      setUserId(data.user.id)
-      await fetchAll(data.user.id)
+      setName(user!.user_metadata?.name || 'Бүтээгч')
+      setUserId(user!.id)
+      await fetchAll(user!.id)
       setLoading(false)
-    })
+    }
+    init()
   }, [router])
 
   const fetchAll = async (uid: string) => {

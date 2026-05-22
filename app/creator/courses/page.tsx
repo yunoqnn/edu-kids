@@ -27,16 +27,17 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { router.push('/'); return }
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
       const { data: rows } = await supabase
         .from('courses')
         .select('id, title, status, grade_level, visibility, created_at')
-        .eq('creator_id', data.user.id)
+        .eq('creator_id', session!.user.id)
         .order('created_at', { ascending: false })
       setCourses(rows ?? [])
       setLoading(false)
-    })
+    }
+    load()
   }, [router])
 
   return (

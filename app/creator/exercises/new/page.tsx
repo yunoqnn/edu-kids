@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { GameBuilder } from '@/components/creator/GameBuilder'
 
 function NewExercisePage() {
@@ -12,12 +11,7 @@ function NewExercisePage() {
   const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user || data.user.user_metadata?.role !== 'CONTENT_CREATOR') {
-        router.push('/'); return
-      }
-      setAuthorized(true)
-    })
+    setAuthorized(true)
   }, [router])
 
   if (!authorized) return null
