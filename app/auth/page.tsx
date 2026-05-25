@@ -262,7 +262,7 @@ function SignInPanel({ role, onSwitch, signupLabel = 'Бүртгүүлэх' }: {
   const [serverError, setServerError] = useState('')
 
   const redirectByRole = (r: string) => {
-    if (r === 'PARENT') router.push('/parent/dashboard')
+    if (r === 'PARENT') router.push('/parent/children')
     else if (r === 'CONTENT_CREATOR') router.push('/creator/dashboard')
     else router.push('/')
   }
@@ -336,7 +336,7 @@ function SignUpPanel({ role, onSwitch }: { role: Role; onSwitch: () => void }) {
   const [serverError, setServerError] = useState('')
 
   const redirectByRole = (r: Role) => {
-    if (r === 'PARENT') router.push('/parent/dashboard')
+    if (r === 'PARENT') router.push('/parent/children')
     else router.push('/creator/dashboard')
   }
 

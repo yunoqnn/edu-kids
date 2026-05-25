@@ -6,20 +6,32 @@ import type { GameResult } from '@/types/games'
 interface Props {
   result: GameResult
   title: string
+  xpEarned: number
+  starsEarned: number
+  leveledUp: boolean
+  newLevel: number
   onPlayAgain: () => void
 }
 
-export function GameResultScreen({ result, title, onPlayAgain }: Props) {
+export function GameResultScreen({ result, title, xpEarned, starsEarned, leveledUp, newLevel, onPlayAgain }: Props) {
   const router = useRouter()
   const pct = Math.round((result.score / result.maxScore) * 100)
   const { message, color } =
-    pct >= 80 ? { message: 'Гайхалтай!',      color: '#7DD3A7' }
-    : pct >= 50 ? { message: 'Сайн байна!',    color: '#FFC93C' }
+    pct >= 80 ? { message: 'Гайхалтай!',   color: '#7DD3A7' }
+    : pct >= 50 ? { message: 'Сайн байна!', color: '#FFC93C' }
     :             { message: 'Дахин оролдоорой!', color: '#F26A6A' }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-violet-50 to-amber-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-xl border border-stone-100 p-8 max-w-sm w-full text-center">
+
+        {/* Level up banner */}
+        {leveledUp && (
+          <div className="mb-4 px-4 py-3 bg-amber-400 rounded-2xl text-white font-bold text-base">
+            Түвшин ахлаа! Түвшин {newLevel} боллоо
+          </div>
+        )}
+
         <h2 className="text-3xl font-bold mb-1" style={{ color }}>{message}</h2>
         <p className="text-stone-400 text-sm mb-6 truncate">{title}</p>
 
@@ -38,8 +50,8 @@ export function GameResultScreen({ result, title, onPlayAgain }: Props) {
           </div>
         </div>
 
-        {/* Correct / Incorrect only — time is tracked in parent dashboard */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
+        {/* Correct / Incorrect */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-green-50 rounded-2xl p-4">
             <div className="text-3xl font-bold text-green-600">{result.correctCount}</div>
             <div className="text-xs text-stone-500 mt-0.5">Зөв</div>
@@ -49,6 +61,20 @@ export function GameResultScreen({ result, title, onPlayAgain }: Props) {
             <div className="text-xs text-stone-500 mt-0.5">Буруу</div>
           </div>
         </div>
+
+        {/* XP and Stars earned */}
+        {(xpEarned > 0 || starsEarned > 0) && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="bg-violet-50 rounded-2xl p-4">
+              <div className="text-2xl font-bold text-violet-600">+{xpEarned}</div>
+              <div className="text-xs text-stone-500 mt-0.5">XP</div>
+            </div>
+            <div className="bg-amber-50 rounded-2xl p-4">
+              <div className="text-2xl font-bold text-amber-500">+{starsEarned}</div>
+              <div className="text-xs text-stone-500 mt-0.5">Од</div>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           <button onClick={onPlayAgain}

@@ -220,7 +220,7 @@ export default function TestPage() {
 
   if (result && selected) {
     return (
-      <GameResultScreen result={result} title={LABELS[selected]} onPlayAgain={handleReset} />
+      <GameResultScreen result={result} title={LABELS[selected]} xpEarned={0} starsEarned={0} leveledUp={false} newLevel={1} onPlayAgain={handleReset} />
     )
   }
 

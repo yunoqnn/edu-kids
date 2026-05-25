@@ -6,10 +6,11 @@ import type { GameResult } from '@/types/games'
 interface Options {
   timeLimitSeconds?: number
   maxScore?: number
+  questionCount?: number
   onTimeUp?: () => void
 }
 
-export function useGameSession({ timeLimitSeconds, maxScore = 100, onTimeUp }: Options = {}) {
+export function useGameSession({ timeLimitSeconds, maxScore = 100, questionCount = 0, onTimeUp }: Options = {}) {
   const [score, setScore] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [incorrectCount, setIncorrectCount] = useState(0)
@@ -45,7 +46,7 @@ export function useGameSession({ timeLimitSeconds, maxScore = 100, onTimeUp }: O
   const complete = useCallback((): GameResult => {
     setIsRunning(false)
     if (timerRef.current) clearInterval(timerRef.current)
-    return { score, maxScore, correctCount, incorrectCount, timeElapsedSeconds: timeElapsed }
+    return { score, maxScore, correctCount, incorrectCount, timeElapsedSeconds: timeElapsed, questionCount }
   }, [score, maxScore, correctCount, incorrectCount, timeElapsed])
 
   const reset = useCallback(() => {

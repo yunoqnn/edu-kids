@@ -31,6 +31,7 @@ export interface GameResult {
   correctCount: number
   incorrectCount: number
   timeElapsedSeconds: number
+  questionCount: number
 }
 
 export interface GameEngineProps<T = unknown> {

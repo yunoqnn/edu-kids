@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { xpProgress } from '@/lib/xp'
 
 /* ---------- Types ---------- */
 interface Student {
   id: string; name: string; avatar: string
-  grade_level: number; points_balance: number; points_total: number; level: number
+  grade_level: number; points_balance: number; points_total: number; xp_total: number; level: number
 }
 interface Exercise {
   id: string; title: string; game_type: string; points_reward: number
@@ -229,8 +230,8 @@ export default function StudentPage() {
     allExercises.push({ ...ex, lessonId: l.id, lessonTitle: l.title, courseTitle: c.title, courseColor: c.color })
   })))
 
-  const levelPct = Math.min((student.points_total % 300) / 300 * 100, 100)
-  const toNext   = 300 - (student.points_total % 300)
+  const { xpIntoLevel, xpNeeded, pct: levelPct } = xpProgress(student.xp_total ?? 0)
+  const toNext = xpNeeded - xpIntoLevel
 
   const tabs = [
     { id: 'play',     label: 'Тоглоом', icon: '🎮' },
@@ -269,7 +270,9 @@ export default function StudentPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ color: 'white', fontWeight: 800, fontSize: 20, marginBottom: 2 }}>Сайн уу, {student.name}!</div>
-              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{student.grade_level}-р анги · Түвшин {student.level}</div>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+    {student.grade_level}-р анги · Түвшин {student.level} · {toNext} XP дараагийн түвшинд
+  </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}>
                   <div style={{ width: `${levelPct}%`, height: '100%', background: '#FFF3D6', borderRadius: 4, transition: 'width 0.5s' }} />

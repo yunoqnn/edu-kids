@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { GAME_REGISTRY } from '@/components/games/registry'
 import { GameResultScreen } from '@/components/games/core/GameResult'
@@ -14,21 +14,34 @@ interface ExerciseRow {
   game_config: GameConfig
   game_data: AnyGameData
   points_reward: number
+  xp_reward: number
+  stars_reward: number
   lesson_id: string
+}
+
+interface CompleteResult {
+  xpEarned: number
+  starsEarned: number
+  newLevel: number
+  leveledUp: boolean
 }
 
 export default function PlayPage() {
   const { exerciseId } = useParams<{ exerciseId: string }>()
+  const searchParams = useSearchParams()
+  const studentId = searchParams.get('studentId') ?? ''
+
   const [exercise, setExercise] = useState<ExerciseRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [result, setResult] = useState<GameResult | null>(null)
+  const [completeResult, setCompleteResult] = useState<CompleteResult | null>(null)
   const [key, setKey] = useState(0)
 
   useEffect(() => {
     supabase
       .from('exercises')
-      .select('id, title, game_type, game_config, game_data, points_reward, lesson_id')
+      .select('id, title, game_type, game_config, game_data, points_reward, xp_reward, stars_reward, lesson_id')
       .eq('id', exerciseId)
       .single()
       .then(({ data, error: err }) => {
@@ -40,19 +53,28 @@ export default function PlayPage() {
 
   const handleComplete = async (res: GameResult) => {
     setResult(res)
-    /* Save attempt — student context needed; for now save with anon student_id */
-    const { data: { session } } = await supabase.auth.getSession()
-    const user = session?.user
-    if (!user) return
-    /* Find student_id for this user's child currently playing */
-    /* TODO: pass studentId via URL param when routing from student dashboard */
-    await supabase.from('exercise_attempts').insert({
-      exercise_id: exerciseId,
-      student_id: user.id, /* replace with actual student_id */
-      score: res.score,
-      correct_count: res.correctCount,
-      completed_at: new Date().toISOString(),
-    })
+
+    if (!studentId) return
+
+    try {
+      const response = await fetch(`/api/exercises/${exerciseId}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId,
+          score:               res.score,
+          correctCount:        res.correctCount,
+          incorrectCount:      res.incorrectCount,
+          timeElapsedSeconds:  res.timeElapsedSeconds,
+        }),
+      })
+      if (response.ok) {
+        const data: CompleteResult = await response.json()
+        setCompleteResult(data)
+      }
+    } catch (err) {
+      console.error('Complete exercise error:', err)
+    }
   }
 
   if (loading) return (
@@ -71,7 +93,15 @@ export default function PlayPage() {
     <GameResultScreen
       result={result}
       title={exercise.title}
-      onPlayAgain={() => { setResult(null); setKey((k) => k + 1) }}
+      xpEarned={completeResult?.xpEarned ?? 0}
+      starsEarned={completeResult?.starsEarned ?? 0}
+      leveledUp={completeResult?.leveledUp ?? false}
+      newLevel={completeResult?.newLevel ?? 1}
+      onPlayAgain={() => {
+        setResult(null)
+        setCompleteResult(null)
+        setKey((k) => k + 1)
+      }}
     />
   )
 
