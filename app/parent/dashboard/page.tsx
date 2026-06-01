@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -20,14 +20,15 @@ function avatarSrc(key: string) { return AVATAR_SRCS[key] ?? AVATAR_SRCS['bear']
 /* ── Types ── */
 interface Profile { id: string; name: string; email: string; created_at: string }
 interface Student { id: string; name: string; grade_level: number; avatar: string; points_total: number; xp_total: number; stars: number; level: number }
-type Tab = 'profile' | 'child-profile' | 'child-report' | 'screentime' | 'chatbot'
+type Tab = 'profile' | 'child-profile' | 'child-report' | 'screentime' // | 'chatbot'
 
 /* ═════════���════════════════════════════════════
    SIDEBAR
 ═════���════════════════════════════════════════ */
-function Sidebar({ active, onTab, profile, collapsed, onToggle, onLogout }: {
+function Sidebar({ active, onTab, profile, collapsed, onToggle, onLogout, mobileOpen, onMobileClose }: {
   active: Tab; onTab: (t: Tab) => void
   profile: Profile | null; collapsed: boolean; onToggle: () => void; onLogout: () => void
+  mobileOpen?: boolean; onMobileClose?: () => void
 }) {
   const w = collapsed ? 72 : 272
   const dicebear = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(profile?.name ?? 'P')}&backgroundColor=E5F7F7`
@@ -35,7 +36,7 @@ function Sidebar({ active, onTab, profile, collapsed, onToggle, onLogout }: {
   const NavBtn = ({ id, label, icon, indent }: { id: Tab; label: string; icon: React.ReactNode; indent?: boolean }) => {
     const on = active === id
     return (
-      <button onClick={() => onTab(id)} title={collapsed ? label : undefined}
+      <button onClick={() => { onTab(id); onMobileClose?.() }} title={collapsed ? label : undefined}
         style={{
           display: 'flex', alignItems: 'center', gap: 12,
           padding: collapsed ? '12px 0' : '11px 14px',
@@ -58,7 +59,7 @@ function Sidebar({ active, onTab, profile, collapsed, onToggle, onLogout }: {
   const stroke = (on: boolean) => on ? '#fff' : S2
 
   return (
-    <aside style={{
+    <aside className={`dash-sidebar${mobileOpen ? ' mob-open' : ''}`} style={{
       width: w, minHeight: '100vh', background: '#fff', borderRight: `1.5px solid ${BR}`,
       display: 'flex', flexDirection: 'column', transition: 'width .25s cubic-bezier(.4,0,.2,1)',
       flexShrink: 0, overflow: 'hidden', zIndex: 10,
@@ -107,7 +108,7 @@ function Sidebar({ active, onTab, profile, collapsed, onToggle, onLogout }: {
         <NavBtn id="child-profile" label="Профайл засах" indent icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={stroke(active==='child-profile')} strokeWidth="2" strokeLinecap="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>} />
         <NavBtn id="child-report" label="Тайлан харах" indent icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={stroke(active==='child-report')} strokeWidth="2" strokeLinecap="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>} />
         <NavBtn id="screentime" label="Дэлгэцийн цаг" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke(active==='screentime')} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>} />
-        <NavBtn id="chatbot" label="Чатбот" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke(active==='chatbot')} strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>} />
+        {/* <NavBtn id="chatbot" label="Чатбот" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke(active==='chatbot')} strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>} /> */}
       </nav>
 
       {collapsed && (
@@ -264,7 +265,7 @@ function ParentProfilePanel({ profile, userId, onNameUpdate }: { profile: Profil
         {/* Password */}
         <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: TX }}>Нууц үг солих</div>
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div className="pw-flex" style={{ display: 'flex', gap: 12 }}>
             <input type="password" value={oldPw} onChange={e => setOldPw(e.target.value)} placeholder="Одоогийн нууц үг" style={{ ...inputSt, flex: 1 }}
               onFocus={e => (e.target.style.borderColor = T)} onBlur={e => (e.target.style.borderColor = BR)} />
             <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Шинэ нууц үг" style={{ ...inputSt, flex: 1 }}
@@ -281,11 +282,12 @@ function ParentProfilePanel({ profile, userId, onNameUpdate }: { profile: Profil
 /* ═══════════════��══════════════════════════════
    CHILD PROFILE PANEL
 ══════════════════════════════════════════════ */
-function ChildProfilePanel({ students, onUpdate }: { students: Student[]; onUpdate: (id: string, name: string, grade: number) => void }) {
+function ChildProfilePanel({ students, onUpdate, onDelete }: { students: Student[]; onUpdate: (id: string, name: string, grade: number) => void; onDelete: (id: string) => void }) {
   const [selectedId, setSelectedId] = useState(students[0]?.id || '')
   const selected = students.find(s => s.id === selectedId)
   const [form, setForm] = useState({ name: selected?.name ?? '', grade_level: selected?.grade_level ?? 1 })
   const [saved, setSaved] = useState(false), [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [enrolledCourses, setEnrolledCourses] = useState<string[]>([])
 
   useEffect(() => {
@@ -304,6 +306,13 @@ function ChildProfilePanel({ students, onUpdate }: { students: Student[]; onUpda
     await supabase.from('students').update({ name: form.name, grade_level: form.grade_level }).eq('id', selectedId)
     onUpdate(selectedId, form.name, form.grade_level)
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleDelete = async () => {
+    if (!confirm(`"${selected.name}"-г устгах уу? Энэ үйлдлийг буцааж болохгүй.`)) return
+    setDeleting(true)
+    await supabase.from('students').delete().eq('id', selectedId)
+    onDelete(selectedId)
   }
 
   return (
@@ -353,6 +362,17 @@ function ChildProfilePanel({ students, onUpdate }: { students: Student[]; onUpda
             </div>
           )}
           <SaveBtn saved={saved} saving={saving} onClick={handleSave} />
+
+          <div style={{ borderTop: `1.5px solid #FEE2E2`, paddingTop: 20, marginTop: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#6B7280', marginBottom: 12 }}>Аюултай бүс</div>
+            <button onClick={handleDelete} disabled={deleting}
+              style={{ background: deleting ? '#FCA5A5' : '#FEF2F2', color: '#DC2626', border: '1.5px solid #FECACA', borderRadius: 12, padding: '11px 22px', fontWeight: 700, fontSize: 14, cursor: deleting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 8, transition: 'all .15s' }}
+              onMouseEnter={e => { if (!deleting) { (e.currentTarget as HTMLButtonElement).style.background = '#FEE2E2'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#FCA5A5' } }}
+              onMouseLeave={e => { if (!deleting) { (e.currentTarget as HTMLButtonElement).style.background = '#FEF2F2'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#FECACA' } }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              {deleting ? 'Устгаж байна...' : `${selected.name}-г устгах`}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -463,7 +483,7 @@ function ChildReportPanel({ students }: { students: Student[] }) {
       ) : (
         <>
           {/* Stats row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
+          <div className="stats-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
             {stats.map(s => (
               <div key={s.label} style={{ background: s.bg, borderRadius: 16, padding: '18px' }}>
                 <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.val}</div>
@@ -472,7 +492,7 @@ function ChildReportPanel({ students }: { students: Student[] }) {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
             {/* Course progress */}
             <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 18 }}>Хичээлийн явц</div>
@@ -550,21 +570,20 @@ function ScreenTimePanel({ students }: { students: Student[] }) {
   const [scheduleEnabled, setScheduleEnabled] = useState(true)
   const [schedule, setSchedule] = useState({ start: '15:00', end: '19:00' })
   const [saved, setSaved] = useState(false)
-
-  const lsKey = (id: string) => `screentime_${id}`
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (!selectedId) return
-    const stored = localStorage.getItem(lsKey(selectedId))
-    if (stored) {
-      const p = JSON.parse(stored)
-      setLimit(p.limit ?? 60)
-      setScheduleEnabled(p.scheduleEnabled ?? true)
-      setSchedule(p.schedule ?? { start: '15:00', end: '19:00' })
-    } else {
-      setLimit(60); setScheduleEnabled(true); setSchedule({ start: '15:00', end: '19:00' })
-    }
+    setLimit(60); setScheduleEnabled(true); setSchedule({ start: '15:00', end: '19:00' })
     setSaved(false)
+    supabase.from('screen_time_settings').select('*').eq('student_id', selectedId).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setLimit(data.daily_limit_minutes)
+          setScheduleEnabled(data.schedule_enabled)
+          setSchedule({ start: (data.schedule_start as string).slice(0, 5), end: (data.schedule_end as string).slice(0, 5) })
+        }
+      })
     const today = new Date().toISOString().split('T')[0]
     supabase.from('exercise_attempts')
       .select('completed_at')
@@ -604,9 +623,19 @@ function ScreenTimePanel({ students }: { students: Student[] }) {
   const maxW = Math.max(...weekly, 1)
   const presets = [30, 45, 60, 90, 120]
 
-  const handleSave = () => {
-    localStorage.setItem(lsKey(selectedId), JSON.stringify({ limit, scheduleEnabled, schedule }))
-    setSaved(true); setTimeout(() => setSaved(false), 2000)
+  const handleSave = async () => {
+    setSaving(true)
+    await supabase.from('screen_time_settings').upsert({
+      student_id: selectedId,
+      daily_limit_minutes: limit,
+      schedule_enabled: scheduleEnabled,
+      schedule_start: schedule.start,
+      schedule_end: schedule.end,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'student_id' })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
   }
 
   const arcColor = usedPct >= 90 ? '#E8A5A5' : usedPct >= 70 ? '#F59E0B' : T
@@ -620,7 +649,7 @@ function ScreenTimePanel({ students }: { students: Student[] }) {
       </div>
       <ChildTabs students={students} selectedId={selectedId} onSelect={setSelectedId} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Today's usage */}
         <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '28px 24px' }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 20 }}>Өнөөдрийн хэрэглээ</div>
@@ -696,7 +725,7 @@ function ScreenTimePanel({ students }: { students: Student[] }) {
               </div>
             )}
           </div>
-          <SaveBtn saved={saved} onClick={handleSave} />
+          <SaveBtn saved={saved} saving={saving} onClick={handleSave} />
         </div>
       </div>
 
@@ -724,121 +753,9 @@ function ScreenTimePanel({ students }: { students: Student[] }) {
   )
 }
 
-/* ══════════════════════════════════════════════
-   CHATBOT PANEL  (UI only)
-═══════════════���═══════════════════════��══════ */
-const INIT_MSG = [{ role: 'bot', text: 'Сайн байна уу! Би StudyComp-ын туслах бот байна. Хүүхдийнхээ сурлагын талаар асуух зүйл байвал бичнэ үү 😊' }]
-const BOT_REPLIES = [
-  'Таны хүүхэд маш сайн ахиц гаргаж байна! Монгол хэлний хичээлд тэргүүлж байна 📚',
-  'Энэ 7 хоногт 5 дасгал амжилттай гүйцэтгэсэн байна. Маш сайн!',
-  'Тоо бодлогын хичээлд арай илүү анхаарал хандуулах хэрэгтэй. Дундаж оноо 70% байна.',
-  'Хүүхдийн дэлгэцийн цагийн хэрэглээ хэвийн байна.',
-  'Хүүхдийнхээ хичээлийн тайланг "Хүүхдийн тайлан" хэсгээс дэлгэрэнгүй харах боломжтой.',
-  'Та хүүхдийнхээ хичээлийн хуваарийг "Дэлгэцийн цаг" хэсгээс тохируулах боломжтой.',
-  'Хэрэв асуух зүйл байвал бичнэ үү! Би танд туслахад бэлэн 😊',
-]
-const QUICK_QS = ['Хүүхдийн сурлагын явц?', 'Дэлгэцийн цагийн хэрэглээ?', 'Ямар хичээлд анхаарах вэ?']
+// ChatbotPanel — disabled (TODO: implement with real AI backend)
 
-function ChatbotPanel() {
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>(INIT_MSG)
-  const [input, setInput] = useState('')
-  const [typing, setTyping] = useState(false)
-  const endRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, typing])
-
-  const send = useCallback(() => {
-    const text = input.trim(); if (!text) return
-    setMessages(p => [...p, { role: 'user', text }]); setInput(''); setTyping(true)
-    setTimeout(() => {
-      setMessages(p => [...p, { role: 'bot', text: BOT_REPLIES[Math.floor(Math.random() * BOT_REPLIES.length)] }])
-      setTyping(false)
-    }, 800 + Math.random() * 800)
-  }, [input])
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 70px)' }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: TX, margin: 0 }}>Чатбот</h1>
-        <p style={{ fontSize: 14, color: S3, fontWeight: 500, marginTop: 4 }}>StudyComp туслах ботоос асуулт асуух</p>
-      </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, overflow: 'hidden', minHeight: 0 }}>
-        {/* Header */}
-        <div style={{ padding: '14px 20px', borderBottom: `1.5px solid ${BR}`, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 14, background: '#E5F7F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T} strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1" fill={T}/><circle cx="16" cy="16" r="1" fill={T}/></svg>
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: TX }}>StudyComp Туслах</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#14B8A6' }} />
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#14B8A6' }}>Идэвхтэй</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', gap: 8, alignItems: 'flex-end' }}>
-              {msg.role === 'bot' && (
-                <div style={{ width: 28, height: 28, borderRadius: 10, background: '#E5F7F7', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T} strokeWidth="2.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
-                </div>
-              )}
-              <div style={{ maxWidth: '70%', padding: '12px 16px', borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px', background: msg.role === 'user' ? T : '#F5F0EA', color: msg.role === 'user' ? 'white' : TX, fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
-                {msg.text}
-              </div>
-            </div>
-          ))}
-          {typing && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-              <div style={{ width: 28, height: 28, borderRadius: 10, background: '#E5F7F7', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T} strokeWidth="2.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
-              </div>
-              <div style={{ padding: '12px 20px', borderRadius: '18px 18px 18px 4px', background: '#F5F0EA', display: 'flex', gap: 5, alignItems: 'center' }}>
-                {[0, 0.2, 0.4].map((delay, j) => (
-                  <div key={j} style={{ width: 7, height: 7, borderRadius: '50%', background: S3, animation: `dotPulse 1.2s ease ${delay}s infinite` }} />
-                ))}
-              </div>
-            </div>
-          )}
-          <div ref={endRef} />
-        </div>
-
-        {/* Quick questions */}
-        {messages.length <= 2 && (
-          <div style={{ padding: '0 20px 12px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {QUICK_QS.map((q, i) => (
-              <button key={i} onClick={() => setInput(q)}
-                style={{ padding: '7px 14px', borderRadius: 20, border: `1.5px solid ${BR}`, background: 'white', fontSize: 12, fontWeight: 600, color: S2, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", transition: 'all .15s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = T; (e.currentTarget as HTMLButtonElement).style.color = '#0D9488' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = BR; (e.currentTarget as HTMLButtonElement).style.color = S2 }}>
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Input */}
-        <div style={{ padding: '14px 16px', borderTop: `1.5px solid ${BR}`, display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-            placeholder="Мессеж бичих..."
-            style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${BR}`, fontSize: 14, fontWeight: 500, fontFamily: "'Nunito',sans-serif", color: TX, background: '#FDFCFA', outline: 'none', transition: 'border-color .15s' }}
-            onFocus={e => (e.target.style.borderColor = T)} onBlur={e => (e.target.style.borderColor = BR)} />
-          <button onClick={send} disabled={!input.trim()}
-            style={{ width: 44, height: 44, borderRadius: 14, border: 'none', background: input.trim() ? T : BR, cursor: input.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .15s', flexShrink: 0 }}
-            onMouseEnter={e => { if (input.trim()) (e.currentTarget as HTMLButtonElement).style.background = T2 }}
-            onMouseLeave={e => { if (input.trim()) (e.currentTarget as HTMLButtonElement).style.background = T }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="m22 2-11 11"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ═══════════════��══════════════════════════════
+/* ═══════════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════════ */
 export default function ParentDashboard() {
@@ -850,6 +767,7 @@ export default function ParentDashboard() {
   const [tab, setTab] = useState<Tab>('profile')
   const [collapsed, setCollapsed] = useState(false)
   const [panelKey, setPanelKey] = useState(0)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -873,6 +791,11 @@ export default function ParentDashboard() {
     setStudents(prev => prev.map(s => s.id === id ? { ...s, name, grade_level: grade } : s))
   }
 
+  const handleChildDelete = (id: string) => {
+    setStudents(prev => prev.filter(s => s.id !== id))
+    setTab('child-profile')
+  }
+
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG, color: S3, fontFamily: 'Nunito,sans-serif', fontWeight: 600 }}>
       Уншиж байна...
@@ -893,20 +816,61 @@ export default function ParentDashboard() {
         .panel-enter { animation: fadeIn 0.25s ease both; }
         @keyframes dotPulse { 0%,80%,100% { opacity:.3; transform:scale(.8); } 40% { opacity:1; transform:scale(1); } }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#7AD1D1; border:3px solid white; box-shadow:0 2px 6px rgba(122,209,209,.4); cursor:pointer; }
+
+        /* ── Mobile responsive ── */
+        .mob-ham { display: none; }
+        .mob-overlay { display: none; }
+        @media (max-width: 768px) {
+          .dash-sidebar {
+            position: fixed !important;
+            height: 100vh !important;
+            top: 0 !important;
+            left: -290px !important;
+            z-index: 200 !important;
+            transition: left 0.28s cubic-bezier(.4,0,.2,1) !important;
+            width: 272px !important;
+          }
+          .dash-sidebar.mob-open {
+            left: 0 !important;
+            box-shadow: 4px 0 28px rgba(0,0,0,0.18) !important;
+          }
+          .mob-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.38);
+            z-index: 199;
+          }
+          .mob-ham { display: flex !important; }
+          .dash-topbar { padding: 10px 16px !important; }
+          .dash-search-area { display: none !important; }
+          .dash-content { padding: 16px 16px 48px !important; }
+          .stats-4col { grid-template-columns: repeat(2, 1fr) !important; }
+          .grid-2col { grid-template-columns: 1fr !important; }
+          .pw-flex { flex-direction: column !important; }
+        }
+        @media (min-width: 769px) {
+          .mob-ham { display: none !important; }
+          .mob-overlay { display: none !important; }
+        }
       `}</style>
 
+      {mobileOpen && <div className="mob-overlay" onClick={() => setMobileOpen(false)} />}
       <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Nunito, sans-serif' }}>
-        <Sidebar active={tab} onTab={handleTab} profile={profile} collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} onLogout={handleLogout} />
+        <Sidebar active={tab} onTab={handleTab} profile={profile} collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} onLogout={handleLogout} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
         <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', background: BG }}>
           {/* Top bar */}
-          <header style={{ position: 'sticky', top: 0, zIndex: 5, background: 'rgba(250,247,242,.92)', backdropFilter: 'blur(12px)', borderBottom: `1.5px solid ${BR}`, padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
+          <header className="dash-topbar" style={{ position: 'sticky', top: 0, zIndex: 5, background: 'rgba(250,247,242,.92)', backdropFilter: 'blur(12px)', borderBottom: `1.5px solid ${BR}`, padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button className="mob-ham" onClick={() => setMobileOpen(true)} style={{ width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${BR}`, background: 'white', cursor: 'pointer', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={S2} strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
               <span style={{ fontSize: 13, color: S3, fontWeight: 600 }}>
                 {new Date().toLocaleDateString('mn-MN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="dash-search-area" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'white', borderRadius: 10, padding: '8px 14px', border: `1.5px solid ${BR}`, minWidth: 200 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={S3} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" placeholder="Хайх..." style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: "'Nunito',sans-serif", fontSize: 13, fontWeight: 500, color: TX, width: '100%' }} />
@@ -918,14 +882,14 @@ export default function ParentDashboard() {
             </div>
           </header>
 
-          <div key={panelKey} className="panel-enter" style={{ padding: '28px 32px 48px' }}>
+          <div key={panelKey} className="panel-enter dash-content" style={{ padding: '28px 32px 48px' }}>
             {tab === 'profile' && profile && (
               <ParentProfilePanel profile={profile} userId={userId} onNameUpdate={name => setProfile(p => p ? { ...p, name } : p)} />
             )}
             {tab === 'child-profile' && (
               students.length === 0
                 ? <div style={{ color: S3, fontWeight: 600, padding: '40px 0', textAlign: 'center' }}>Хүүхэд нэмэгдээгүй байна. <button onClick={() => router.push('/parent/children')} style={{ color: T, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}>Нэмэх →</button></div>
-                : <ChildProfilePanel students={students} onUpdate={handleChildUpdate} />
+                : <ChildProfilePanel students={students} onUpdate={handleChildUpdate} onDelete={handleChildDelete} />
             )}
             {tab === 'child-report' && (
               students.length === 0
@@ -937,7 +901,7 @@ export default function ParentDashboard() {
                 ? <div style={{ color: S3, fontWeight: 600, padding: '40px 0', textAlign: 'center' }}>Хүүхэд нэмэгдээгүй байна.</div>
                 : <ScreenTimePanel students={students} />
             )}
-            {tab === 'chatbot' && <ChatbotPanel />}
+            {/* {tab === 'chatbot' && <ChatbotPanel />} */}
           </div>
         </main>
       </div>

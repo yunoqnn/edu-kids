@@ -106,7 +106,7 @@ function MascotSignUp() {
           <rect x="8" y="0" width="8" height="36" fill="#5BBF8A" />
           <line x1="163" y1="4" x2="163" y2="32" stroke="#1F1A2E" strokeWidth="1" opacity="0.3" />
           <line x1="167" y1="4" x2="167" y2="32" stroke="#1F1A2E" strokeWidth="1" opacity="0.3" />
-          <text x="92" y="23" textAnchor="middle" fontFamily="Lexend, sans-serif" fontSize="12" fontWeight="700" fill="#1F1A2E">ТООЛОЛ · 2-Р АНГИ</text>
+          <text x="92" y="23" textAnchor="middle" fontFamily="Lexend, sans-serif" fontSize="12" fontWeight="700" fill="#1F1A2E">ТОО ТООЛОЛ · 2-Р АНГИ</text>
         </g>
 
         {/* book 1 - top */}
@@ -264,6 +264,7 @@ function SignInPanel({ role, onSwitch, signupLabel = 'Бүртгүүлэх' }: {
   const redirectByRole = (r: string) => {
     if (r === 'PARENT') router.push('/parent/children')
     else if (r === 'CONTENT_CREATOR') router.push('/creator/dashboard')
+    else if (r === 'ADMIN') router.push('/admin/dashboard')
     else router.push('/')
   }
 
@@ -379,11 +380,7 @@ function SignUpPanel({ role, onSwitch }: { role: Role; onSwitch: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 460 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <button type="button" onClick={onSwitch} aria-label="Буцах"
-          style={{ width: 40, height: 40, borderRadius: 12, border: '1.5px solid #EADFCB', background: '#FFFFFF', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
         <div style={{ fontSize: 13, color: '#5A5470' }}>
           Бүртгэлтэй юу?{' '}
           <button type="button" onClick={onSwitch} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#7E5BD9', fontWeight: 700, fontFamily: 'inherit', fontSize: 13, borderBottom: '1.5px solid #7E5BD9' }}>
@@ -456,6 +453,11 @@ function AuthForm() {
           .auth-grid { grid-template-columns: 1fr !important; }
           .auth-left { display: none !important; }
         }
+        @media (max-width: 520px) {
+          .auth-right { padding: 20px 20px !important; }
+          .auth-back-btn { left: 20px !important; top: 20px !important; }
+          .auth-role-badge { right: 20px !important; top: 20px !important; }
+        }
       `}</style>
 
       <div className="auth-grid" style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', minHeight: '100vh', overflow: 'hidden' }}>
@@ -494,34 +496,33 @@ function AuthForm() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 60px', overflow: 'auto', background: '#FFF7EC' }}>
+        <div className="auth-right" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 60px', overflow: 'auto', background: '#FFF7EC' }}>
           <div style={{ position: 'absolute', inset: 24, borderRadius: 32, background: '#FFF7EC', boxShadow: '0 20px 60px -30px rgba(31,26,46,0.25), inset 0 0 0 1.5px #EADFCB', pointerEvents: 'none' }} />
 
-          {/* Back to role-select (only when in signup mode) */}
-          {mode === 'signup' && (
-            <button
-              type="button"
-              onClick={() => router.push('/role-select')}
-              style={{
-                position: 'absolute', top: 48, left: 60, zIndex: 3,
-                width: 40, height: 40, borderRadius: 10,
-                background: '#FFFFFF', border: '1.5px solid #EADFCB',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(31,26,46,0.08)',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1F1A2E' }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#EADFCB' }}
-              aria-label="Буцах"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
-          )}
+          {/* Back button — signin goes to home, signup goes to role-select */}
+          <button
+            type="button"
+            className="auth-back-btn"
+            onClick={() => router.push(mode === 'signup' ? '/role-select' : '/')}
+            style={{
+              position: 'absolute', top: 48, left: 60, zIndex: 3,
+              width: 40, height: 40, borderRadius: 10,
+              background: '#FFFFFF', border: '1.5px solid #EADFCB',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(31,26,46,0.08)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1F1A2E' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#EADFCB' }}
+            aria-label="Буцах"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
 
           {/* Role badge — only when role is known */}
           {roleFromUrl && (
-            <div style={{
+            <div className="auth-role-badge" style={{
               position: 'absolute', top: 48, right: 60, zIndex: 3,
               background: '#1F1A2E', color: '#FFF7EC',
               padding: '8px 14px', borderRadius: 999, fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: 'uppercase',

@@ -165,6 +165,22 @@ function DiscoverCard({ course, enrolling, onEnroll }: { course: Course; enrolli
 }
 
 /* ---------- Page ---------- */
+interface ScreenTimeSettings {
+  daily_limit_minutes: number
+  schedule_enabled: boolean
+  schedule_start: string
+  schedule_end: string
+}
+
+function isOutsideSchedule(s: ScreenTimeSettings): boolean {
+  if (!s.schedule_enabled) return false
+  const now = new Date()
+  const nowM = now.getHours() * 60 + now.getMinutes()
+  const [sh, sm] = s.schedule_start.slice(0, 5).split(':').map(Number)
+  const [eh, em] = s.schedule_end.slice(0, 5).split(':').map(Number)
+  return nowM < sh * 60 + sm || nowM >= eh * 60 + em
+}
+
 export default function StudentPage() {
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
@@ -174,6 +190,8 @@ export default function StudentPage() {
   const [activeTab, setActiveTab] = useState<'play' | 'courses' | 'discover'>('play')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
+  const [screenTimeBlock, setScreenTimeBlock] = useState<null | 'limit' | 'schedule'>(null)
+  const [screenTimeSettings, setScreenTimeSettings] = useState<ScreenTimeSettings | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -184,6 +202,20 @@ export default function StudentPage() {
       const { data: s } = await supabase.from('students').select('*').eq('id', id).eq('parent_id', user.id).single()
       if (!s) { router.push('/parent/children'); return }
       setStudent(s)
+
+      /* Check screen time */
+      const today = new Date().toISOString().split('T')[0]
+      const [{ data: stData }, { data: todayAttempts }] = await Promise.all([
+        supabase.from('screen_time_settings').select('*').eq('student_id', id).maybeSingle(),
+        supabase.from('exercise_attempts').select('id').eq('student_id', id).gte('completed_at', today + 'T00:00:00'),
+      ])
+      if (stData) {
+        const st: ScreenTimeSettings = stData
+        setScreenTimeSettings(st)
+        const usedMinutes = (todayAttempts ?? []).length * 5
+        if (usedMinutes >= st.daily_limit_minutes) { setScreenTimeBlock('limit'); setLoading(false); return }
+        if (isOutsideSchedule(st)) { setScreenTimeBlock('schedule'); setLoading(false); return }
+      }
 
       /* Fetch published courses with lessons and exercises */
       const { data: rawCourses } = await supabase
@@ -215,11 +247,41 @@ export default function StudentPage() {
     setEnrollingId(null)
   }
 
-  if (loading || !student) return (
+  if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: BG, color: S3, fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 600 }}>
       Уншиж байна...
     </div>
   )
+
+  if (screenTimeBlock && screenTimeSettings) {
+    const isLimit = screenTimeBlock === 'limit'
+    return (
+      <>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap'); * { box-sizing:border-box; } body { font-family:'Nunito',sans-serif; }`}</style>
+        <div style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Nunito, sans-serif', padding: 32, textAlign: 'center' }}>
+          <div style={{ fontSize: 90, marginBottom: 24, lineHeight: 1 }}>{isLimit ? '⏰' : '🌙'}</div>
+          <div style={{ fontWeight: 800, fontSize: 26, color: TX, marginBottom: 14 }}>
+            {isLimit ? 'Дэлгэцийн цаг дууслаа!' : 'Одоо тоглох цаг биш байна'}
+          </div>
+          <div style={{ fontSize: 15, color: S2, fontWeight: 500, maxWidth: 300, lineHeight: 1.7, marginBottom: 8 }}>
+            {isLimit
+              ? `Өнөөдрийн ${screenTimeSettings.daily_limit_minutes} минутын хязгаар дуусжээ.`
+              : `Тоглох хугацаа: ${screenTimeSettings.schedule_start.slice(0, 5)} – ${screenTimeSettings.schedule_end.slice(0, 5)}`
+            }
+          </div>
+          <div style={{ fontSize: 13, color: S3, fontWeight: 600, marginBottom: 32 }}>
+            {isLimit ? 'Маргааш дахин тоглоорой!' : 'Хүлээгээрэй, тун удахгүй болно 😊'}
+          </div>
+          <button onClick={() => router.push('/parent/children')}
+            style={{ background: T, color: 'white', border: 'none', borderRadius: 16, padding: '14px 36px', fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(122,209,209,0.4)' }}>
+            Буцах
+          </button>
+        </div>
+      </>
+    )
+  }
+
+  if (!student) return null
 
   const enrolled = allCourses.filter(c => c.is_enrolled)
   const discover = allCourses.filter(c => !c.is_enrolled)

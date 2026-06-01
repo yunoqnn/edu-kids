@@ -214,12 +214,16 @@ export default function ChildrenPage() {
         .ch-input { width:100%; height:50px; padding:0 16px; border-radius:14px; border:1.5px solid ${BR}; font-family:'Nunito',sans-serif; font-size:15px; color:${TX}; background:white; outline:none; transition:border-color 160ms; }
         .ch-input:focus { border-color:${T}; }
         .ch-input::placeholder { color:${S3}; }
+        @media (max-width: 640px) {
+          .ch-topbar { padding: 12px 16px !important; }
+          .ch-content { padding: 16px 16px 80px !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: BG, fontFamily: 'Nunito, sans-serif' }}>
 
         {/* Top bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 48px', maxWidth: 1280, margin: '0 auto' }}>
+        <div className="ch-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 48px', maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 36, height: 36, borderRadius: 12, background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -241,7 +245,7 @@ export default function ChildrenPage() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 48px 80px' }}>
+        <div className="ch-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 48px 80px' }}>
 
           {/* Greeting */}
           <div style={{ textAlign: 'center', marginTop: 40, marginBottom: 48 }}>
@@ -279,32 +283,42 @@ export default function ChildrenPage() {
             </div>
           )}
 
-          {/* Create form */}
-          {(showForm || students.length === 0) && (
-            <div style={{ background: 'white', borderRadius: 28, border: `1.5px solid ${BR}`, padding: '40px', boxShadow: '0 16px 48px rgba(0,0,0,0.07)', maxWidth: 520, margin: '0 auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 800, color: TX, margin: 0 }}>Хүүхдийн профайл</h2>
-                {students.length > 0 && (
+          {/* Empty state CTA */}
+          {students.length === 0 && !showForm && (
+            <div style={{ textAlign: 'center', paddingTop: 20 }}>
+              <button onClick={() => setShowForm(true)}
+                style={{ background: T, color: 'white', border: 'none', borderRadius: 14, padding: '14px 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Хүүхэд нэмэх →
+              </button>
+            </div>
+          )}
+
+          {/* Modal popup */}
+          {showForm && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}>
+              <div style={{ background: 'white', borderRadius: 28, padding: '40px', boxShadow: '0 24px 64px rgba(0,0,0,0.14)', width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                  <h2 style={{ fontSize: 22, fontWeight: 800, color: TX, margin: 0 }}>Хүүхдийн профайл</h2>
                   <button type="button" onClick={resetForm}
                     style={{ width: 34, height: 34, borderRadius: 10, border: `1.5px solid ${BR}`, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={TX} strokeWidth="2.5" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                   </button>
-                )}
-              </div>
-              <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <AvatarSelector selected={avatar} onSelect={setAvatar} />
-                <div style={{ height: 1, background: BR }} />
-                <div>
-                  <label htmlFor="cname" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TX, marginBottom: 8 }}>Хүүхдийн нэр</label>
-                  <input id="cname" className="ch-input" type="text" placeholder="Нэрийг оруулна уу" value={name} onChange={e => setName(e.target.value)} required />
                 </div>
-                <GradeSelector selected={gradeLevel} onSelect={setGradeLevel} />
-                {error && <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 12, padding: '10px 14px', color: '#dc2626', fontSize: 13 }}>{error}</div>}
-                <button type="submit" disabled={adding || !name.trim()}
-                  style={{ width: '100%', padding: '15px', background: T, color: 'white', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: adding ? 'not-allowed' : 'pointer', opacity: adding ? 0.6 : 1, fontFamily: 'inherit', transition: 'all 150ms' }}>
-                  {adding ? 'Хадгалж байна...' : 'Профайл үүсгэх →'}
-                </button>
-              </form>
+                <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <AvatarSelector selected={avatar} onSelect={setAvatar} />
+                  <div style={{ height: 1, background: BR }} />
+                  <div>
+                    <label htmlFor="cname" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TX, marginBottom: 8 }}>Хүүхдийн нэр</label>
+                    <input id="cname" className="ch-input" type="text" placeholder="Нэрийг оруулна уу" value={name} onChange={e => setName(e.target.value)} required />
+                  </div>
+                  <GradeSelector selected={gradeLevel} onSelect={setGradeLevel} />
+                  {error && <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 12, padding: '10px 14px', color: '#dc2626', fontSize: 13 }}>{error}</div>}
+                  <button type="submit" disabled={adding || !name.trim()}
+                    style={{ width: '100%', padding: '15px', background: T, color: 'white', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: adding ? 'not-allowed' : 'pointer', opacity: adding ? 0.6 : 1, fontFamily: 'inherit', transition: 'all 150ms' }}>
+                    {adding ? 'Хадгалж байна...' : 'Профайл үүсгэх →'}
+                  </button>
+                </form>
+              </div>
             </div>
           )}
         </div>

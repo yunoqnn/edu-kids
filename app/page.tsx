@@ -24,20 +24,20 @@ export default function HomePage() {
               style={{ padding: '8px 20px', fontSize: 14 }}
               onClick={() => router.push('/auth')}
             >
-              Login
+              Нэвтрэх
             </button>
             <button
               className="btn-primary"
               style={{ padding: '8px 20px', fontSize: 14 }}
               onClick={() => router.push('/role-select')}
             >
-              Sign Up
+              Бүртгүүлэх
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section — looping background video, no controls */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-16">
         <div className="absolute inset-0 pt-16 overflow-hidden">
           <video
@@ -66,23 +66,23 @@ export default function HomePage() {
             style={{ background: 'rgba(255, 255, 255, 0.9)', border: '2px solid var(--accent-wood)' }}
           >
             <Gamepad2 className="w-5 h-5" style={{ color: 'var(--accent-teal)' }} />
-            <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>Learning through play</span>
+            <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>Тоглонгоо суралцъя!</span>
           </div>
 
           <h1
             className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight"
             style={{ color: 'var(--text)', textShadow: '2px 2px 4px rgba(255,255,255,0.8)' }}
           >
-            Make Learning<br />
-            <span style={{ color: 'var(--primary)' }}>Fun & Exciting</span>
+            Сурах үйл явцыг <br />
+            <span style={{ color: 'var(--primary)' }}>Илүү хөгжилтэй болгоё</span>
           </h1>
 
           <p
             className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
             style={{ color: 'var(--text)', textShadow: '1px 1px 2px rgba(255,255,255,0.9)' }}
           >
-            An educational platform designed for elementary school students.
-            Learn with games, earn rewards, and track progress together with parents.
+            Бага ангийн сурагчдад зориулсан цахим сургалтын платформ. 
+            Тоглонгоо суралцаж, урамшуулал цуглуулан, ахиц дэвшлээ эцэг эхтэйгээ хамтдаа хянаарай.
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -91,14 +91,14 @@ export default function HomePage() {
               onClick={() => router.push('/role-select')}
             >
               <Star className="w-5 h-5" />
-              Get Started
+              Эхлэх
             </button>
             <button
               className="btn-ghost text-lg px-10 py-4"
               style={{ background: 'rgba(255,255,255,0.85)' }}
               onClick={() => router.push('/auth')}
             >
-              Login
+              Нэвтрэх
             </button>
           </div>
         </div>
@@ -109,30 +109,30 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4" style={{ color: 'var(--text)' }}>
-              Who Can Use?
+              Хэнд зориулагдсан бэ?
             </h2>
             <p className="text-lg" style={{ color: 'var(--text-muted)' }}>
-              Our platform is designed for the whole education community
+              Сургалтын үйл ажиллагаанд оролцогч хүн бүрд зориулав.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 icon: GraduationCap,
-                title: 'Student',
-                desc: 'Elementary school students grades 1–5 who want to learn through engaging games and activities',
+                title: 'Сурагчид',
+                desc: 'Тоглоом болон сонирхолтой дасгал даалгавраар дамжуулан суралцах хүсэлтэй 1-5 дугаар ангийн сурагчид.',
                 color: 'var(--accent-teal)',
               },
               {
                 icon: Heart,
-                title: 'Parent',
-                desc: "Parents who want to monitor their children's progress and support their educational journey",
+                title: 'Эцэг эхчүүд',
+                desc: 'Хүүхдийнхээ сурлагын ахиц дэвшлийг хянаж, суралцах үйл явцад нь дэмжлэг үзүүлэх хүсэлтэй эцэг эхчүүд.',
                 color: 'var(--accent-coral)',
               },
               {
                 icon: BookOpen,
-                title: 'Teacher',
-                desc: 'Educators who want to create engaging content and track student performance',
+                title: 'Багш нар',
+                desc: 'Сурагчдынхаа гүйцэтгэлийг хянаж, хичээлээ илүү сонирхолтой, хүртээмжтэй байдлаар заах хүсэлтэй сурган хүмүүжүүлэгчид.',
                 color: 'var(--accent-purple)',
               },
             ].map((item) => (
@@ -165,21 +165,21 @@ export default function HomePage() {
                 style={{ background: 'var(--accent-teal)', color: 'white' }}
               >
                 <GraduationCap className="w-5 h-5" />
-                <span className="font-bold text-sm">For Students</span>
+                <span className="font-bold text-sm">Сурагчдад зориулав</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6" style={{ color: 'var(--text)' }}>
-                Learn While Having Fun
+                Тоглонгоо суралцах боломж
               </h2>
               <p className="text-lg mb-8 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                Transform boring homework into exciting adventures. Our gamified learning approach
-                makes education engaging and memorable.
+                Гэрийн даалгавраа уйтгартай биш, харин сонирхолтой адал явдал мэтээр хийгээрэй. 
+                Тоглоомд суурилсан сургалтын арга нь хүүхдийн сурах сонирхлыг нэмэгдүүлдэг.
               </p>
               <div className="space-y-4">
                 {[
-                  { icon: Gamepad2, text: 'Interactive games for every subject' },
-                  { icon: Trophy, text: 'Earn points and unlock achievements' },
-                  { icon: Star, text: 'Collect badges and rewards' },
-                  { icon: BarChart3, text: 'Track your learning progress' },
+                  { icon: Gamepad2, text: 'Бүх хичээлийг хамарсан интерактив тоглоомууд' },
+                  { icon: Trophy, text: 'Оноо цуглуулж, шинэ түвшинд хүрэх' },
+                  { icon: Star, text: 'Онцгой тэмдэг, шагнал хүртэх' },
+                  { icon: BarChart3, text: 'Сурлагын ахиц дэвшлээ хянах' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div
@@ -199,10 +199,10 @@ export default function HomePage() {
             >
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { title: 'Memory Games', bg: '#E8F1F8' },
-                  { title: 'Drag & Drop', bg: '#E8F5F4' },
-                  { title: 'Number Sequence', bg: '#F8E8E8' },
-                  { title: 'Challenges', bg: '#F0E8F8' },
+                  { title: 'Ой тогтоолтын тоглоом', bg: '#E8F1F8' },
+                  { title: 'Зөв харгалзуулах', bg: '#E8F5F4' },
+                  { title: 'Тоон дараалал', bg: '#F8E8E8' },
+                  { title: 'Асуулт, хариулт', bg: '#F0E8F8' },
                 ].map((game) => (
                   <div
                     key={game.title}
@@ -228,10 +228,10 @@ export default function HomePage() {
             >
               <div className="space-y-4">
                 {[
-                  { icon: BarChart3, title: 'Progress Dashboard', desc: 'See detailed learning analytics', color: 'var(--accent-teal)' },
-                  { icon: Clock, title: 'Screen Time Control', desc: 'Set daily learning limits', color: 'var(--accent-coral)' },
-                  { icon: Bell, title: 'Activity Alerts', desc: 'Get notified of achievements', color: 'var(--accent-purple)' },
-                  { icon: Shield, title: 'Safe Environment', desc: 'Kid-friendly content only', color: 'var(--primary)' },
+                  { icon: BarChart3, title: 'Ахиц дэвшлийг хянах', desc: 'Хүүхдийнхээ сурлагын тайланг дэлгэрэнгүй харах', color: 'var(--accent-teal)' },
+                  { icon: Clock, title: 'Дэлгэцийн цагийн тохиргоо', desc: 'Өдөрт платформ ашиглах хугацааг тохируулах', color: 'var(--accent-coral)' },
+                  { icon: Bell, title: 'Мэдэгдэл хүлээн авах', desc: 'Хүүхдийнхээ гаргасан амжилтын мэдээллийг цаг тухайд нь авах', color: 'var(--accent-purple)' },
+                  { icon: Shield, title: 'Аюулгүй цахим орчин', desc: 'Зөвхөн хүүхдэд зориулагдсан, найдвартай контентууд', color: 'var(--primary)' },
                 ].map((item) => (
                   <div
                     key={item.title}
@@ -258,21 +258,21 @@ export default function HomePage() {
                 style={{ background: 'var(--accent-coral)', color: 'white' }}
               >
                 <Heart className="w-5 h-5" />
-                <span className="font-bold text-sm">For Parents</span>
+                <span className="font-bold text-sm">Эцэг эхчүүдэд зориулав</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6" style={{ color: 'var(--text)' }}>
-                Stay Connected With Your Child&apos;s Learning
+                Хүүхдийнхээ сурах үйл явцтай үргэлж хамт байгаарай
               </h2>
               <p className="text-lg mb-8 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                Monitor progress, set screen time limits, and celebrate achievements together.
-                Be an active part of your child&apos;s educational journey.
+                Хүүхдийнхээ сурлагын ахицыг хянаж, дэлгэцийн цагийг нь тохируулан, гаргасан амжилтыг нь хамтдаа тэмдэглээрэй. 
+                Хүүхдийнхээ сурах үйл явцад идэвхтэй оролцох боломжийг бид олгож байна.
               </p>
               <button
                 className="btn-primary"
                 style={{ padding: '12px 28px', fontSize: 15 }}
                 onClick={() => router.push('/role-select?tab=signup')}
               >
-                Get Started as a Parent
+                Эцэг эхээр бүртгүүлэх
               </button>
             </div>
           </div>
@@ -289,21 +289,21 @@ export default function HomePage() {
                 style={{ background: 'var(--accent-purple)', color: 'white' }}
               >
                 <BookOpen className="w-5 h-5" />
-                <span className="font-bold text-sm">For Teachers</span>
+                <span className="font-bold text-sm">Багш нарт зориулав</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6" style={{ color: 'var(--text)' }}>
-                Create Engaging Educational Content
+                Сонирхолтой сургалтын контент бүтээх нь
               </h2>
               <p className="text-lg mb-8 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                Design interactive lessons, create custom exercises, and track your students&apos;
-                performance all in one place.
+                Интерактив хичээл бэлтгэж, өөрийн арга барилд нийцүүлэн даалгавар үүсгэх, мөн сурагчдынхаа 
+                сурлагын гүйцэтгэлийг нэг дороос хянах бүрэн боломжтой.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { text: 'Content Creator' },
-                  { text: 'Analytics Dashboard' },
-                  { text: 'Student Management' },
-                  { text: 'Custom Assignments' },
+                  { text: 'Контент бүтээх хэрэгсэл' },
+                  { text: 'Сурлагын дүн шинжилгээ' },
+                  { text: 'Сурагчдын нэгдсэн удирдлага' },
+                  { text: 'Даалгавар өгөх систем' },
                 ].map((item) => (
                   <div
                     key={item.text}
@@ -319,7 +319,7 @@ export default function HomePage() {
                 style={{ padding: '12px 28px', fontSize: 15 }}
                 onClick={() => router.push('/role-select?tab=signup')}
               >
-                Sign Up as a Teacher
+                Багшаар бүртгүүлэх
               </button>
             </div>
             <div
@@ -329,16 +329,16 @@ export default function HomePage() {
               <div className="text-center">
                 <Users className="w-16 h-16 mx-auto mb-6" style={{ color: 'var(--accent-purple)' }} />
                 <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--text)' }}>
-                  Join Our Teaching Community
+                  Багш нарын нээлттэй бүлгэмд нэгдээрэй
                 </h3>
                 <p className="mb-6" style={{ color: 'var(--text-muted)' }}>
-                  Share resources, get inspiration, and collaborate with educators worldwide.
+                  Бусадтайгаа материал хуваалцаж, шинэ санаа уралдуулан, мэргэжил нэгт багш нартайгаа хамтран ажиллаарай.
                 </p>
                 <div className="flex justify-center gap-8">
                   {[
-                    { num: '5', label: 'Grade Levels', color: 'var(--primary)' },
-                    { num: '3+', label: 'Game Types', color: 'var(--accent-teal)' },
-                    { num: '∞', label: 'Course Content', color: 'var(--accent-coral)' },
+                    { num: '5', label: 'Ангийн түвшин', color: 'var(--primary)' },
+                    { num: '9+', label: 'Тоглоомын төрөл', color: 'var(--accent-teal)' },
+                    { num: '∞', label: 'Хичээлийн контент', color: 'var(--accent-coral)' },
                   ].map((s) => (
                     <div key={s.label} className="text-center">
                       <div className="text-3xl font-extrabold" style={{ color: s.color }}>{s.num}</div>
@@ -356,18 +356,18 @@ export default function HomePage() {
       <section className="py-24 px-6" style={{ background: 'var(--primary)' }}>
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-white">
-            Learning Made Simple
+            Суралцах үйл явцыг илүү хялбар болголоо
           </h2>
           <p className="text-xl mb-12 max-w-2xl mx-auto" style={{ color: 'rgba(255,255,255,0.8)' }}>
-            Our platform combines the best of education and entertainment
-            to create an unforgettable learning experience.
+            Манай платформ нь боловсрол олгох үйл явцыг тоглоомтой хослуулан, 
+            сурагчдад хэзээ ч мартагдашгүй мэдлэг бүтээх боломжийг олгодог.
           </p>
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { icon: CheckCircle, title: 'Easy to Use', desc: 'Simple interface for kids' },
-              { icon: Shield, title: 'Safe & Secure', desc: 'Protected environment' },
-              { icon: Trophy, title: 'Motivating', desc: 'Rewards and achievements' },
-              { icon: BarChart3, title: 'Trackable', desc: 'Monitor progress easily' },
+              { icon: CheckCircle, title: 'Хэрэглэхэд хялбар', desc: 'Хүүхдэд ээлтэй, ойлгомжтой загвар' },
+              { icon: Shield, title: 'Аюулгүй байдал', desc: 'Бүрэн хамгаалагдсан цахим орчин' },
+              { icon: Trophy, title: 'Урамшуулалт систем', desc: 'Урам зориг өгөх шагнал, амжилтууд' },
+              { icon: BarChart3, title: 'Хянахад хялбар', desc: 'Сурлагын ахицыг хялбархан хянах боломж' },
             ].map((item) => (
               <div
                 key={item.title}
@@ -383,12 +383,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section with Background Image */}
+      {/* CTA Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center">
         <div className="absolute inset-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/cozy-classroom.png"
-            alt="Cozy classroom"
+            alt="Тухтай анги танхим"
             className="w-full h-full object-cover"
           />
           <div
@@ -398,10 +399,10 @@ export default function HomePage() {
         </div>
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-white">
-            Ready to Start the Learning Adventure?
+            Эрдмийн аяллаа эхлүүлэхэд бэлэн үү?
           </h2>
           <p className="text-xl mb-10 text-white/90 max-w-xl mx-auto">
-            Join thousands of students, parents, and teachers already using our platform.
+            Манай платформыг аль хэдийн ашиглаад эхэлсэн мянга мянган сурагч, эцэг эх, багш нартай нэгдээрэй.
           </p>
           <button
             className="btn-primary text-lg px-12 py-5 shadow-2xl"
@@ -409,7 +410,7 @@ export default function HomePage() {
             onClick={() => router.push('/role-select?tab=signup')}
           >
             <Star className="w-6 h-6" />
-            Start Now
+            Яг одоо эхлэх
           </button>
         </div>
       </section>
@@ -426,30 +427,30 @@ export default function HomePage() {
                 <span className="font-extrabold text-xl">StudyComp</span>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                Educational platform for elementary school students with gamified learning experience.
+                Бага ангийн сурагчдад зориулсан, тоглоомд суурилсан цахим сургалтын платформ.
               </p>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Platform</h4>
+              <h4 className="font-bold mb-4">Цэснүүд</h4>
               <ul className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                <li><a href="#" className="hover:text-white transition-colors">For Students</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">For Parents</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">For Teachers</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Сурагчдад</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Эцэг эхчүүдэд</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Багш нарт</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Resources</h4>
+              <h4 className="font-bold mb-4">Мэдээлэл</h4>
               <ul className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Тусламжийн төв</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Холбоо барих</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Түгээмэл асуултууд</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Legal</h4>
+              <h4 className="font-bold mb-4">Дүрэм, журам</h4>
               <ul className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Нууцлалын бодлого</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Үйлчилгээний нөхцөл</a></li>
               </ul>
             </div>
           </div>
@@ -458,10 +459,10 @@ export default function HomePage() {
             style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
           >
             <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              © 2026 StudyComp. All rights reserved.
+              © 2026 StudyComp. Бүх эрх хуулиар хамгаалагдсан.
             </span>
             <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Made with love for young learners
+              Бяцхан сурагчдадаа зориулан сэтгэл шингээж бүтээв.
             </span>
           </div>
         </div>

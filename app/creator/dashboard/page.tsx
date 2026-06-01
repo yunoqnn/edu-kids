@@ -88,6 +88,15 @@ const CSS = `
   @keyframes modalIn { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
   .panel-enter { animation: fadeIn 0.25s ease both; }
   .lesson-hdr:hover { background: #FAFAF8 !important; }
+  @media (max-width: 768px) {
+    .creator-topbar { padding: 10px 16px !important; }
+    .creator-topbar-search { display: none !important; }
+    .creator-content { padding: 16px 16px 48px !important; }
+    .stats-4col { grid-template-columns: repeat(2, 1fr) !important; }
+    .stats-3col { grid-template-columns: repeat(2, 1fr) !important; }
+    .course-header-actions { flex-wrap: wrap !important; }
+    .course-hdr-row { flex-direction: column !important; align-items: flex-start !important; }
+  }
 `
 
 /* ── Shared UI Atoms ────────────────────────────────────────────── */
@@ -381,7 +390,7 @@ function TopBar() {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
   return (
-    <header style={{
+    <header className="creator-topbar" style={{
       position: 'sticky', top: 0, zIndex: 5,
       background: 'rgba(250,247,242,0.92)',
       backdropFilter: 'blur(12px)',
@@ -390,7 +399,7 @@ function TopBar() {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     }}>
       <span style={{ fontSize: 13, color: S3, fontWeight: 600 }}>{dateStr}</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="creator-topbar-search" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: 'white', borderRadius: 10, padding: '8px 14px',
@@ -448,7 +457,7 @@ function CoursesPanel({ courses, onSelectCourse, onCreateNew, onRefresh }: {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div className="stats-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
         {statCards.map(s => (
           <div key={s.label} style={{ background: s.bg, borderRadius: 14, padding: '16px 18px', border: '1.5px solid transparent' }}>
             <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.val}</div>
@@ -614,7 +623,7 @@ function CourseDetailView({ course, onBack, onRefresh }: {
         padding: '24px', marginBottom: 24, position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 4, background: color }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18 }}>
+        <div className="course-hdr-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 18 }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ width: 18, height: 18, borderRadius: '50%', background: color }} />
           </div>
@@ -880,7 +889,6 @@ function LessonsPanel({ courses, onCreateNew, onRefresh }: { courses: Course[]; 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: TX, margin: 0 }}>Хичээлүүд</h1>
-          <p style={{ fontSize: 14, color: S3, fontWeight: 500, marginTop: 4 }}>Слайдшоу хичээл байршуулах, удирдах</p>
         </div>
         <CreateBtn onClick={onCreateNew}>Шинэ хичээл</CreateBtn>
       </div>
@@ -1232,7 +1240,7 @@ function ClassesPanel({ courses, students }: { courses: Course[]; students: Enro
       </div>
 
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+      <div className="stats-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
         <div style={{ background: '#E5F7F7', borderRadius: 14, padding: '18px 20px' }}>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#0D9488' }}>{students.length}</div>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#5BBABA', marginTop: 2 }}>Нийт сурагч</div>
@@ -1589,7 +1597,7 @@ function CreatorDashboardInner() {
     <>
       <style>{CSS}</style>
       <TopBar />
-      <div key={panelKey} className="panel-enter" style={{ padding: '28px 32px 48px' }}>
+      <div key={panelKey} className="panel-enter creator-content" style={{ padding: '28px 32px 48px' }}>
 
         {activeTab === 'courses' && !selectedCourse && (
           <CoursesPanel

@@ -20,6 +20,45 @@ const GLOBAL_CSS = `
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #E5DDD3; border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: #C4A77D; }
+  .creator-mob-topbar { display: none; }
+  .creator-mob-overlay { display: none; }
+  @media (max-width: 768px) {
+    .creator-sidebar {
+      position: fixed !important;
+      height: 100vh !important;
+      top: 0 !important;
+      left: -280px !important;
+      z-index: 200 !important;
+      transition: left 0.28s cubic-bezier(.4,0,.2,1) !important;
+      width: 260px !important;
+    }
+    .creator-sidebar.mob-open {
+      left: 0 !important;
+      box-shadow: 4px 0 28px rgba(0,0,0,0.18) !important;
+    }
+    .creator-mob-overlay {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.38);
+      z-index: 199;
+    }
+    .creator-mob-topbar {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1.5px solid #E5DDD3;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+  }
+  @media (min-width: 769px) {
+    .creator-mob-topbar { display: none !important; }
+    .creator-mob-overlay { display: none !important; }
+  }
 `
 
 const NAV_ITEMS = [
@@ -47,17 +86,17 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
-  {
-    id: 'classes', label: 'Анги',
-    icon: (active: boolean) => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : S2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-    ),
-  },
+  // {
+  //   id: 'classes', label: 'Анги',
+  //   icon: (active: boolean) => (
+  //     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : S2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  //       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+  //       <circle cx="9" cy="7" r="4"/>
+  //       <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+  //       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  //     </svg>
+  //   ),
+  // },
 ]
 
 function useActiveTab() {
@@ -70,13 +109,13 @@ function useActiveTab() {
   return 'courses'
 }
 
-function CreatorSidebar({ name }: { name: string }) {
+function CreatorSidebar({ name, mobileOpen, onMobileClose }: { name: string; mobileOpen?: boolean; onMobileClose?: () => void }) {
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
   const activeTab = useActiveTab()
   const W = collapsed ? 72 : 260
 
-  const handleTab = (tab: string) => router.push(`/creator/dashboard?tab=${tab}`)
+  const handleTab = (tab: string) => { router.push(`/creator/dashboard?tab=${tab}`); onMobileClose?.() }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -84,7 +123,7 @@ function CreatorSidebar({ name }: { name: string }) {
   }
 
   return (
-    <aside style={{
+    <aside className={`creator-sidebar${mobileOpen ? ' mob-open' : ''}`} style={{
       width: W, minHeight: '100vh', background: '#fff',
       borderRight: `1.5px solid ${BR}`, display: 'flex', flexDirection: 'column',
       transition: 'width 0.25s cubic-bezier(.4,0,.2,1)', flexShrink: 0,
@@ -222,6 +261,7 @@ function CreatorSidebar({ name }: { name: string }) {
 
 function CreatorShellInner({ children }: { children: React.ReactNode }) {
   const [name, setName] = useState('')
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -232,9 +272,22 @@ function CreatorShellInner({ children }: { children: React.ReactNode }) {
   return (
     <>
       <style>{GLOBAL_CSS}</style>
+      {mobileOpen && <div className="creator-mob-overlay" onClick={() => setMobileOpen(false)} />}
       <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Nunito, sans-serif' }}>
-        <CreatorSidebar name={name} />
+        <CreatorSidebar name={name} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
         <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', background: BG }}>
+          {/* Mobile-only topbar with hamburger */}
+          <div className="creator-mob-topbar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: T, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
+              </div>
+              <span style={{ fontWeight: 800, fontSize: 15, color: T }}>StudyComp</span>
+            </div>
+            <button onClick={() => setMobileOpen(true)} style={{ width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${BR}`, background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={TX} strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+          </div>
           {children}
         </main>
       </div>

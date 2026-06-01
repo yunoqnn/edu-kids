@@ -118,10 +118,6 @@ export default function StudentLessonPage() {
                       <div style={{ fontWeight: 700, fontSize: 15, color: TX }}>{ex.title}</div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: color, marginTop: 3 }}>{GAME_LABELS[ex.game_type] ?? ex.game_type}</div>
                     </div>
-                    <div style={{ background: '#FFF3D6', borderRadius: 10, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                      <span style={{ fontSize: 13 }}>⭐</span>
-                      <span style={{ fontWeight: 800, fontSize: 14, color: GD }}>+{ex.points_reward}</span>
-                    </div>
                   </button>
                 ))}
               </div>

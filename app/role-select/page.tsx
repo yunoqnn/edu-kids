@@ -82,10 +82,10 @@ function RoleSelectForm() {
               marginBottom: 8,
             }}
           >
-            Who are you?
+            Та хэн бэ?
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 36 }}>
-            Choose your role to continue
+            Сонгоод үргэлжлүүлээрэй! 
           </p>
 
           {/* Role Cards */}
@@ -141,11 +141,9 @@ function RoleSelectForm() {
                     marginBottom: 4,
                   }}
                 >
-                  Parent
+                  Бага ангийн сурагчийн эцэг эх
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  Monitor your child&apos;s learning journey
-                </div>
+  
               </div>
             </button>
 
@@ -200,11 +198,9 @@ function RoleSelectForm() {
                     marginBottom: 4,
                   }}
                 >
-                  Teacher
+                  Контент бүтээгч багш
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  Create and manage educational content
-                </div>
+              
               </div>
             </button>
           </div>
