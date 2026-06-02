@@ -11,6 +11,7 @@ interface Lesson {
   title: string
   type: 'LESSON' | 'FAIRY_TALE'
   text_content: string | null
+  video_url: string | null
   is_published: boolean
   course_id: string
 }
@@ -167,19 +168,29 @@ export default function LessonEditorPage() {
   const [type, setType] = useState<'LESSON' | 'FAIRY_TALE'>('LESSON')
   const [textContent, setTextContent] = useState('')
 
+  /* Content type: null = not chosen yet, VIDEO, SLIDESHOW */
+  const [contentType, setContentType] = useState<'VIDEO' | 'SLIDESHOW' | null>(null)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [videoUploading, setVideoUploading] = useState(false)
+  const [videoUploadError, setVideoUploadError] = useState('')
+  const videoFileRef = useRef<HTMLInputElement>(null)
+
   /* ---------- Load ---------- */
   const load = async () => {
     const { data: l } = await supabase
       .from('lessons')
-      .select('id, title, type, text_content, is_published, course_id')
+      .select('id, title, type, text_content, video_url, is_published, course_id')
       .eq('id', lessonId)
       .single()
 
     if (l) {
-      setLesson(l as Lesson)
-      setTitle(l.title)
-      setType((l.type ?? 'LESSON') as 'LESSON' | 'FAIRY_TALE')
-      setTextContent(l.text_content ?? '')
+      const lesson = l as Lesson
+      setLesson(lesson)
+      setTitle(lesson.title)
+      setType((lesson.type ?? 'LESSON') as 'LESSON' | 'FAIRY_TALE')
+      setTextContent(lesson.text_content ?? '')
+      setVideoUrl(lesson.video_url ?? null)
+      if (lesson.video_url) setContentType('VIDEO')
     }
 
     const { data: sw } = await supabase
@@ -190,6 +201,7 @@ export default function LessonEditorPage() {
 
     if (sw) {
       setSlideshow(sw)
+      setContentType('SLIDESHOW')
       const { data: sl } = await supabase
         .from('slides')
         .select('*')
@@ -211,11 +223,44 @@ export default function LessonEditorPage() {
     setSaving(true)
     await supabase
       .from('lessons')
-      .update({ title, type, text_content: textContent || null })
+      .update({ title, type, text_content: textContent || null, video_url: videoUrl || null })
       .eq('id', lessonId)
     setSaving(false)
     setSavedOk(true)
     setTimeout(() => setSavedOk(false), 2000)
+  }
+
+  /* ---------- Content type switch ---------- */
+  const switchContentType = (to: 'VIDEO' | 'SLIDESHOW') => {
+    if (contentType === to) return
+    const hasExisting = contentType === 'VIDEO' ? !!videoUrl : !!slideshow
+    if (hasExisting) {
+      const label = contentType === 'VIDEO' ? 'видео' : 'слайдшоу'
+      if (!confirm(`Одоогийн ${label} агуулгыг устгах уу? Энэ үйлдлийг буцаах боломжгүй.`)) return
+      if (contentType === 'VIDEO') {
+        setVideoUrl(null)
+        supabase.from('lessons').update({ video_url: null }).eq('id', lessonId)
+      } else if (slideshow) {
+        supabase.from('slideshows').delete().eq('id', slideshow.id)
+        setSlideshow(null)
+        setSlides([])
+      }
+    }
+    setContentType(to)
+  }
+
+  /* ---------- Video upload ---------- */
+  const handleVideoUpload = async (file: File) => {
+    setVideoUploading(true)
+    setVideoUploadError('')
+    const result = await upload(file, 'videos')
+    setVideoUploading(false)
+    if (!result) {
+      setVideoUploadError('Видео байршуулахад алдаа гарлаа.')
+      return
+    }
+    setVideoUrl(result.url)
+    await supabase.from('lessons').update({ video_url: result.url }).eq('id', lessonId)
   }
 
   /* ---------- Slideshow actions ---------- */
@@ -366,60 +411,176 @@ export default function LessonEditorPage() {
           </div>
         </div>
 
-        {/* Slideshow card */}
+        {/* Content type card */}
         <div className="bg-white rounded-2xl border border-stone-200 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-stone-700">Хичээлийн үзүүлэн</h2>
-            <div className="flex items-center gap-3">
-              {genResult && (
-                <span className={`text-xs font-semibold ${genResult.successCount === genResult.total ? 'text-green-600' : 'text-amber-600'}`}>
-                  {genResult.successCount}/{genResult.total} слайд амжилттай
-                </span>
-              )}
-              {slideshow && slides.length > 0 && slides.some((s) => s.script_text) && (
+            <h2 className="font-bold text-stone-700">Хичээлийн агуулга</h2>
+            {contentType && (
+              <div className="flex gap-1.5 p-1 bg-stone-100 rounded-xl">
                 <button
-                  onClick={generateAudio}
-                  disabled={generating}
-                  className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-50 transition-all"
+                  onClick={() => switchContentType('VIDEO')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    contentType === 'VIDEO'
+                      ? 'bg-white text-violet-700 shadow-sm'
+                      : 'text-stone-500 hover:text-stone-700'
+                  }`}
                 >
-                  {generating ? 'Үүсгэж байна...' : '🎵 Дуу үүсгэх'}
+                  🎬 Видео
                 </button>
-              )}
-            </div>
+                <button
+                  onClick={() => switchContentType('SLIDESHOW')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    contentType === 'SLIDESHOW'
+                      ? 'bg-white text-violet-700 shadow-sm'
+                      : 'text-stone-500 hover:text-stone-700'
+                  }`}
+                >
+                  🖼️ Слайдшоу
+                </button>
+              </div>
+            )}
           </div>
 
-          {!slideshow ? (
-            <div className="space-y-2">
+          {/* Not chosen yet */}
+          {!contentType && (
+            <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={createSlideshow}
-                disabled={creating}
-                className="w-full py-4 border-2 border-dashed border-stone-300 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                onClick={() => setContentType('VIDEO')}
+                className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-stone-200 rounded-xl hover:border-violet-400 hover:bg-violet-50 transition-all group"
               >
-                {creating ? 'Үүсгэж байна...' : '+ Хичээлийн үзүүлэн нэмэх'}
+                <span className="text-3xl">🎬</span>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-stone-700 group-hover:text-violet-700">Видео</p>
+                  <p className="text-xs text-stone-400 mt-0.5">MP4, MOV файл байршуулах</p>
+                </div>
               </button>
-              {createError && (
-                <p className="text-xs text-red-500 font-medium px-1">{createError}</p>
+              <button
+                onClick={() => setContentType('SLIDESHOW')}
+                className="flex flex-col items-center gap-3 p-6 border-2 border-dashed border-stone-200 rounded-xl hover:border-violet-400 hover:bg-violet-50 transition-all group"
+              >
+                <span className="text-3xl">🖼️</span>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-stone-700 group-hover:text-violet-700">Слайдшоу</p>
+                  <p className="text-xs text-stone-400 mt-0.5">Зурагтай слайд + дуу</p>
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* Video section */}
+          {contentType === 'VIDEO' && (
+            <div className="space-y-3">
+              <input
+                ref={videoFileRef}
+                type="file"
+                accept="video/mp4,video/quicktime,video/webm,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) handleVideoUpload(f)
+                }}
+              />
+              {videoUrl ? (
+                <div className="space-y-3">
+                  <video
+                    src={videoUrl}
+                    controls
+                    className="w-full rounded-xl border border-stone-200 bg-black"
+                    style={{ maxHeight: 320 }}
+                  />
+                  <button
+                    onClick={() => videoFileRef.current?.click()}
+                    disabled={videoUploading}
+                    className="w-full py-2.5 border border-stone-200 rounded-xl text-xs font-semibold text-stone-600 hover:border-violet-400 hover:text-violet-600 disabled:opacity-50 transition-all"
+                  >
+                    {videoUploading ? 'Байршуулж байна...' : '↺ Видео солих'}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => videoFileRef.current?.click()}
+                  disabled={videoUploading}
+                  className="w-full py-10 border-2 border-dashed border-stone-200 rounded-xl flex flex-col items-center gap-2 hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50 transition-all"
+                >
+                  {videoUploading ? (
+                    <>
+                      <span className="text-2xl animate-spin">⏳</span>
+                      <span className="text-sm font-semibold text-violet-600">Байршуулж байна...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl">🎬</span>
+                      <span className="text-sm font-semibold text-violet-600">Видео байршуулах</span>
+                      <span className="text-xs text-stone-400">MP4, MOV, WEBM — дарж сонгоно уу</span>
+                    </>
+                  )}
+                </button>
+              )}
+              {videoUploadError && (
+                <p className="text-xs text-red-500 font-medium">{videoUploadError}</p>
               )}
             </div>
-          ) : (
-            <div className="space-y-3">
-              {slides.map((slide, idx) => (
-                <SlideCard
-                  key={slide.id}
-                  slide={slide}
-                  index={idx}
-                  uploading={uploading}
-                  onScriptChange={(val) => updateSlideField(slide.id, 'script_text', val)}
-                  onImageUpload={(file) => handleImageUpload(slide.id, file)}
-                  onDelete={() => deleteSlide(slide.id)}
-                />
-              ))}
-              <button
-                onClick={addSlide}
-                className="w-full py-3 border-2 border-dashed border-stone-200 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-300 hover:bg-violet-50 transition-all"
-              >
-                + Зураг слайд нэмэх
-              </button>
+          )}
+
+          {/* Slideshow section */}
+          {contentType === 'SLIDESHOW' && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-stone-500 font-medium">
+                  {slideshow ? `${slides.length} слайд` : 'Слайдшоу байхгүй'}
+                </span>
+                <div className="flex items-center gap-3">
+                  {genResult && (
+                    <span className={`text-xs font-semibold ${genResult.successCount === genResult.total ? 'text-green-600' : 'text-amber-600'}`}>
+                      {genResult.successCount}/{genResult.total} слайд амжилттай
+                    </span>
+                  )}
+                  {slideshow && slides.length > 0 && slides.some((s) => s.script_text) && (
+                    <button
+                      onClick={generateAudio}
+                      disabled={generating}
+                      className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-50 transition-all"
+                    >
+                      {generating ? 'Үүсгэж байна...' : '🎵 Дуу үүсгэх'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {!slideshow ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={createSlideshow}
+                    disabled={creating}
+                    className="w-full py-4 border-2 border-dashed border-stone-300 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {creating ? 'Үүсгэж байна...' : '+ Слайдшоу үүсгэх'}
+                  </button>
+                  {createError && (
+                    <p className="text-xs text-red-500 font-medium px-1">{createError}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {slides.map((slide, idx) => (
+                    <SlideCard
+                      key={slide.id}
+                      slide={slide}
+                      index={idx}
+                      uploading={uploading}
+                      onScriptChange={(val) => updateSlideField(slide.id, 'script_text', val)}
+                      onImageUpload={(file) => handleImageUpload(slide.id, file)}
+                      onDelete={() => deleteSlide(slide.id)}
+                    />
+                  ))}
+                  <button
+                    onClick={addSlide}
+                    className="w-full py-3 border-2 border-dashed border-stone-200 rounded-xl text-sm text-violet-600 font-semibold hover:border-violet-300 hover:bg-violet-50 transition-all"
+                  >
+                    + Зураг слайд нэмэх
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

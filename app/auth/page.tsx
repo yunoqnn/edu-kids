@@ -472,11 +472,8 @@ function AuthForm() {
 
           {/* Logo */}
           <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="40" height="40" viewBox="0 0 48 48" aria-hidden>
-              <circle cx="24" cy="24" r="22" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeDasharray="4 3" />
-              <path d="M14 28 L24 16 L34 28 L24 22 Z" fill="#1F1A2E" />
-              <circle cx="24" cy="32" r="2.5" fill="#1F1A2E" />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo.png" width="40" height="40" alt="StudyComp" style={{ objectFit: 'contain' }} />
             <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: 22, color: '#1F1A2E', letterSpacing: -0.3 }}>edukids</span>
           </div>
 

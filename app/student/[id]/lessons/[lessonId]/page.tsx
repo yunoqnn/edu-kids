@@ -7,7 +7,7 @@ import SlideshowViewer from '@/components/SlideshowViewer'
 
 interface Lesson {
   id: string; title: string; type: string
-  text_content: string | null; course_id: string
+  text_content: string | null; video_url: string | null; course_id: string
 }
 interface Exercise { id: string; title: string; game_type: string; points_reward: number }
 
@@ -41,7 +41,7 @@ export default function StudentLessonPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: l } = await supabase.from('lessons').select('id, title, type, text_content, course_id').eq('id', lessonId).single()
+      const { data: l } = await supabase.from('lessons').select('id, title, type, text_content, video_url, course_id').eq('id', lessonId).single()
       if (!l) { router.back(); return }
       setLesson(l as Lesson)
       const { data: c } = await supabase.from('courses').select('id, title').eq('id', l.course_id).single()
@@ -96,6 +96,16 @@ export default function StudentLessonPage() {
             </div>
           )}
 
+          {lesson.video_url && (
+            <div style={{ marginBottom: 20 }}>
+              <video
+                src={lesson.video_url}
+                controls
+                style={{ width: '100%', borderRadius: 20, border: `1.5px solid ${BR}`, background: '#000', display: 'block' }}
+              />
+            </div>
+          )}
+
           {slideshowId && (
             <div style={{ marginBottom: 20 }}>
               <SlideshowViewer slideshowId={slideshowId} accentColor={hdrColor} />
@@ -124,7 +134,7 @@ export default function StudentLessonPage() {
             </div>
           )}
 
-          {!lesson.text_content && !slideshowId && exercises.length === 0 && (
+          {!lesson.text_content && !lesson.video_url && !slideshowId && exercises.length === 0 && (
             <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '40px 24px', textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🚧</div>
               <div style={{ fontWeight: 700, fontSize: 16, color: TX }}>Агуулга удахгүй нэмэгдэнэ</div>

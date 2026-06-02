@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { xpProgress } from '@/lib/xp'
 
 /* ── Tokens ── */
 const T = '#7AD1D1', T2 = '#5BBABA', BG = '#FAF7F2', BR = '#E5DDD3'
@@ -417,28 +418,25 @@ function ChildReportPanel({ students }: { students: Student[] }) {
   const totalExercises = enrollments.reduce((sum: number, e: any) =>
     sum + (e.courses?.lessons ?? []).reduce((s2: number, l: any) => s2 + (l.exercises?.length ?? 0), 0), 0)
 
-  /* Streak */
-  const attemptDays = new Set(attempts.map((a: any) => a.completed_at?.split('T')[0]))
-  let streak = 0
-  const sd = new Date(); sd.setHours(0,0,0,0)
-  while (true) {
-    const ds = sd.toISOString().split('T')[0]
-    if (attemptDays.has(ds)) { streak++; sd.setDate(sd.getDate() - 1) } else break
-  }
-
-  /* Monthly points (last 6 months) */
+  /* Weekly points (current week Mon–Sun, fixed order) */
   const now = new Date()
-  const monthly: number[] = [], monthLabels: string[] = []
-  for (let i = 5; i >= 0; i--) {
-    const mo = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const pts = attempts.filter((a: any) => {
-      const d = new Date(a.completed_at)
-      return d.getFullYear() === mo.getFullYear() && d.getMonth() === mo.getMonth()
-    }).reduce((s: number, a: any) => s + (a.exercises?.points_reward ?? 0), 0)
-    monthly.push(pts)
-    monthLabels.push(`${mo.getMonth() + 1}-р сар`)
+  const dow = now.getDay() // 0=Sun
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  monday.setHours(0, 0, 0, 0)
+  const WEEK_LABELS = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня']
+  const daily: number[] = [], dayLabels: string[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    const dateStr = d.toISOString().split('T')[0]
+    const pts = attempts
+      .filter((a: any) => a.completed_at?.split('T')[0] === dateStr)
+      .reduce((s: number, a: any) => s + (a.exercises?.points_reward ?? 0), 0)
+    daily.push(pts)
+    dayLabels.push(WEEK_LABELS[i])
   }
-  const maxPts = Math.max(...monthly, 1)
+  const maxPts = Math.max(...daily, 1)
 
   /* Course progress */
   const donePerCourse: Record<string, Set<string>> = {}
@@ -464,9 +462,9 @@ function ChildReportPanel({ students }: { students: Student[] }) {
   }))
 
   const stats = [
-    { label: 'Дундаж оноо', val: avgScore + '%', bg: '#E5F7F7', color: '#0D9488' },
+    { label: 'Бүртгүүлсэн хөтөлбөр', val: enrollments.length, bg: '#E5F7F7', color: '#0D9488' },
     { label: 'Гүйцэтгэсэн', val: `${doneExercises}/${totalExercises}`, bg: '#FFF3D6', color: '#C4A77D' },
-    { label: 'Тасралтгүй өдөр', val: streak, bg: '#FCE4E4', color: '#D97B7B' },
+    { label: 'Дундаж оноо', val: avgScore + '%', bg: '#FCE4E4', color: '#D97B7B' },
     { label: 'Нийт оноо', val: child.points_total, bg: '#EDE5F7', color: '#7B68AE' },
   ]
 
@@ -477,6 +475,33 @@ function ChildReportPanel({ students }: { students: Student[] }) {
         <p style={{ fontSize: 14, color: S3, fontWeight: 500, marginTop: 4 }}>Сурлагын явцыг дэлгэрэнгүй харах</p>
       </div>
       <ChildTabs students={students} selectedId={selectedId} onSelect={setSelectedId} />
+
+      {/* XP progress banner */}
+      {child && (() => {
+        const xp = xpProgress(child.xp_total ?? 0)
+        const remaining = xp.xpNeeded - xp.xpIntoLevel
+        return (
+          <div style={{ background: '#1A1A2E', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatarSrc(child.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: 'white' }}>{child.name}</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{child.grade_level}-р анги · Түвшин {child.level}</div>
+            </div>
+            <div style={{ marginLeft: 'auto', textAlign: 'right', minWidth: 200 }}>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 600, marginBottom: 8 }}>
+                Дараагийн түвшинд <span style={{ color: '#A78BFA', fontWeight: 800 }}>{remaining} XP</span> дутуу
+              </div>
+              <div style={{ height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
+                <div style={{ height: '100%', width: `${xp.pct}%`, background: 'linear-gradient(90deg,#7C3AED,#A78BFA)', borderRadius: 4, transition: 'width .6s ease' }} />
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{xp.xpIntoLevel} / {xp.xpNeeded} XP</div>
+            </div>
+          </div>
+        )
+      })()}
 
       {loading ? (
         <div style={{ color: S3, fontWeight: 600, padding: '40px 0', textAlign: 'center' }}>Уншиж байна...</div>
@@ -516,15 +541,15 @@ function ChildReportPanel({ students }: { students: Student[] }) {
               </div>
             </div>
 
-            {/* Monthly chart */}
+            {/* Weekly chart */}
             <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px' }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 18 }}>Сарын оноо</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 18 }}>7 хоногийн оноо</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 140 }}>
-                {monthly.map((pts, i) => (
+                {daily.map((pts: number, i: number) => (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: T }}>{pts}</span>
-                    <div style={{ width: '100%', borderRadius: 6, height: `${Math.max((pts / maxPts) * 100, 8)}px`, background: 'linear-gradient(180deg,#7AD1D1,#B8E8E8)', transition: 'height .5s ease' }} />
-                    <span style={{ fontSize: 10, color: S3, fontWeight: 600 }}>{monthLabels[i]}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: T }}>{pts > 0 ? pts : ''}</span>
+                    <div style={{ width: '100%', borderRadius: 6, height: `${Math.max((pts / maxPts) * 100, 8)}px`, background: pts > 0 ? 'linear-gradient(180deg,#7AD1D1,#B8E8E8)' : '#F3F0EB', transition: 'height .5s ease' }} />
+                    <span style={{ fontSize: 10, color: S3, fontWeight: 600 }}>{dayLabels[i]}</span>
                   </div>
                 ))}
               </div>

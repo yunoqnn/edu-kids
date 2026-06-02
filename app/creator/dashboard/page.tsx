@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { xpProgress } from '@/lib/xp'
 
 /* ── Types ─────────────────────────────────────────────────────── */
 interface Exercise {
@@ -35,9 +36,10 @@ interface EnrolledStudent {
   studentName: string
   avatar: string
   gradeLevel: number
-  pointsTotal: number
   courseId: string
   courseTitle: string
+  progress: number
+  lastActive: string | null
 }
 
 /* ── Constants ──────────────────────────────────────────────────── */
@@ -51,6 +53,32 @@ const S3 = '#9CA3AF'
 
 const PALETTE = ['#7AD1D1', '#E8A5A5', '#9B8BBC', '#C4A77D', '#8BC4A5', '#B5C4E8']
 function courseColor(id: string) { return PALETTE[id.charCodeAt(0) % PALETTE.length] }
+
+const AVATAR_SRCS: Record<string, string> = {
+  bear: '/avatars/bear head.png', cat: '/avatars/elephant head.png',
+  dog: '/avatars/hippo head.png', rabbit: '/avatars/lion head.png',
+  penguin: '/avatars/panda head.png', fox: '/avatars/tiger head.png',
+}
+function avatarSrc(key: string) { return AVATAR_SRCS[key] ?? AVATAR_SRCS['bear'] }
+
+function progressColor(pct: number) {
+  if (pct >= 70) return '#14B8A6'
+  if (pct >= 50) return '#F59E0B'
+  return '#E8A5A5'
+}
+
+function relativeTime(iso: string | null): string {
+  if (!iso) return 'Идэвхгүй'
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  if (mins < 1) return 'Саяхан'
+  if (mins < 60) return `${mins} минутын өмнө`
+  if (hours < 24) return `${hours} цагийн өмнө`
+  if (days === 1) return 'Өчигдөр'
+  return `${days} өдрийн өмнө`
+}
 
 const STATUS_CFG: Record<string, { label: string; bg: string; color: string; dot: string }> = {
   DRAFT:          { label: 'Ноорог',          bg: '#F3F0EB', color: S2,       dot: S3        },
@@ -1226,11 +1254,238 @@ function ExerciseCard({ exercise, onEdit, onDelete }: { exercise: Exercise & { c
   )
 }
 
+/* ── StudentDetailPanel ─────────────────────────────────────────── */
+function StudentDetailPanel({ student, onBack }: { student: EnrolledStudent; onBack: () => void }) {
+  const [attempts, setAttempts] = useState<any[]>([])
+  const [enrollments, setEnrollments] = useState<any[]>([])
+  const [pointsTotal, setPointsTotal] = useState(0)
+  const [xpTotal, setXpTotal] = useState(0)
+  const [studentLevel, setStudentLevel] = useState(1)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch(`/api/creator/students/${student.studentId}`)
+      .then(r => r.json())
+      .then(data => {
+        setAttempts(data.attempts ?? [])
+        setEnrollments(data.enrollments ?? [])
+        setPointsTotal(data.student?.points_total ?? 0)
+        setXpTotal(data.student?.xp_total ?? 0)
+        setStudentLevel(data.student?.level ?? 1)
+        setLoading(false)
+      })
+  }, [student.studentId])
+
+  /* Stats */
+  const avgScore = attempts.length
+    ? Math.round(attempts.reduce((s, a) => s + (a.score ?? 0), 0) / attempts.length)
+    : 0
+  const doneSet = new Set(attempts.map((a: any) => a.exercise_id))
+  const doneExercises = doneSet.size
+  const totalExercises = enrollments.reduce((sum: number, e: any) =>
+    sum + (e.courses?.lessons ?? []).reduce((s2: number, l: any) => s2 + (l.exercises?.length ?? 0), 0), 0)
+
+  /* Weekly chart (Mon–Sun fixed) */
+  const now = new Date()
+  const dow = now.getDay()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  monday.setHours(0, 0, 0, 0)
+  const WEEK_LABELS = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня']
+  const daily: number[] = [], dayLabels: string[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    const dateStr = d.toISOString().split('T')[0]
+    const pts = attempts
+      .filter((a: any) => a.completed_at?.split('T')[0] === dateStr)
+      .reduce((s: number, a: any) => s + (a.exercises?.points_reward ?? 0), 0)
+    daily.push(pts)
+    dayLabels.push(WEEK_LABELS[i])
+  }
+  const maxPts = Math.max(...daily, 1)
+
+  /* Course progress */
+  const donePerCourse: Record<string, Set<string>> = {}
+  attempts.forEach((a: any) => {
+    const cid = a.exercises?.lessons?.course_id
+    if (!cid) return
+    if (!donePerCourse[cid]) donePerCourse[cid] = new Set()
+    donePerCourse[cid].add(a.exercise_id)
+  })
+  const courseProgressList = enrollments.map((e: any) => {
+    const cid = e.course_id
+    const total = (e.courses?.lessons ?? []).reduce((s: number, l: any) => s + (l.exercises?.length ?? 0), 0)
+    return { name: e.courses?.title ?? '—', color: courseColor(cid), total, done: donePerCourse[cid]?.size ?? 0 }
+  })
+
+  /* Recent activities */
+  const recent = attempts.slice(0, 5).map((a: any) => ({
+    date: a.completed_at?.split('T')[0] ?? '',
+    action: a.exercises?.title ?? '—',
+    course: a.exercises?.lessons?.courses?.title ?? '—',
+    score: a.score ?? 0,
+    points: a.exercises?.points_reward ?? 0,
+  }))
+
+  const stats = [
+    { label: 'Бүртгүүлсэн хөтөлбөр', val: enrollments.length, bg: '#E5F7F7', color: '#0D9488' },
+    { label: 'Гүйцэтгэсэн', val: `${doneExercises}/${totalExercises}`, bg: '#FFF3D6', color: '#C4A77D' },
+    { label: 'Дундаж оноо', val: avgScore + '%', bg: '#FCE4E4', color: '#D97B7B' },
+    { label: 'Нийт оноо', val: pointsTotal, bg: '#EDE5F7', color: '#7B68AE' },
+  ]
+
+  return (
+    <div>
+      {/* Back button row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <button onClick={onBack} style={{
+          width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${BR}`,
+          background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0, transition: 'border-color 0.15s',
+        }}
+          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T}
+          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = BR}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={S2} strokeWidth="2.5" strokeLinecap="round">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </button>
+        <span style={{ fontSize: 14, color: S2, fontWeight: 600 }}>Ангийн жагсаалт руу буцах</span>
+      </div>
+
+      {/* XP progress banner — profile + level info */}
+      {(() => {
+        const xp = xpProgress(xpTotal)
+        const remaining = xp.xpNeeded - xp.xpIntoLevel
+        return (
+          <div style={{ background: '#1A1A2E', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatarSrc(student.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: 'white' }}>{student.studentName}</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>
+                {student.gradeLevel}-р анги · Түвшин {studentLevel}
+              </div>
+            </div>
+            <div style={{ marginLeft: 'auto', textAlign: 'right', minWidth: 200 }}>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 600, marginBottom: 8 }}>
+                Дараагийн түвшинд <span style={{ color: '#A78BFA', fontWeight: 800 }}>{remaining} XP</span> дутуу
+              </div>
+              <div style={{ height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
+                <div style={{ height: '100%', width: `${xp.pct}%`, background: 'linear-gradient(90deg,#7C3AED,#A78BFA)', borderRadius: 4, transition: 'width .6s ease' }} />
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{xp.xpIntoLevel} / {xp.xpNeeded} XP</div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {loading ? (
+        <div style={{ color: S3, fontWeight: 600, padding: '40px 0', textAlign: 'center' }}>Уншиж байна...</div>
+      ) : (
+        <>
+          {/* Stats */}
+          <div className="stats-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
+            {stats.map(s => (
+              <div key={s.label} style={{ background: s.bg, borderRadius: 16, padding: '18px' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.val}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: s.color, opacity: 0.8, marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            {/* Course progress */}
+            <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 18 }}>Хичээлийн явц</div>
+              {courseProgressList.length === 0 && <div style={{ color: S3, fontSize: 13 }}>Бүртгэлтэй хичээл байхгүй</div>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {courseProgressList.map(cp => {
+                  const pct = cp.total > 0 ? Math.round((cp.done / cp.total) * 100) : 0
+                  return (
+                    <div key={cp.name}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: TX }}>{cp.name}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: cp.color }}>{pct}%</span>
+                      </div>
+                      <div style={{ height: 10, background: '#F3F0EB', borderRadius: 5, overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: cp.color, borderRadius: 5, transition: 'width .6s ease' }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: S3, fontWeight: 600, marginTop: 4 }}>{cp.done}/{cp.total} дасгал гүйцэтгэсэн</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Weekly chart */}
+            <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 18 }}>7 хоногийн оноо</div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 140 }}>
+                {daily.map((pts, i) => (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: T }}>{pts > 0 ? pts : ''}</span>
+                    <div style={{ width: '100%', borderRadius: 6, height: `${Math.max((pts / maxPts) * 100, 8)}px`, background: pts > 0 ? 'linear-gradient(180deg,#7AD1D1,#B8E8E8)' : '#F3F0EB', transition: 'height .5s ease' }} />
+                    <span style={{ fontSize: 10, color: S3, fontWeight: 600 }}>{dayLabels[i]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Recent activities */}
+          <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 16 }}>Сүүлийн үйл ажиллагаа</div>
+            {recent.length === 0 && <div style={{ color: S3, fontSize: 13 }}>Дасгал гүйцэтгэсэн бүртгэл байхгүй</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {recent.map((act, i) => {
+                const sc = act.score >= 80 ? '#14B8A6' : act.score >= 60 ? '#F59E0B' : '#E8A5A5'
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderRadius: 14, background: i % 2 === 0 ? '#FDFCFA' : 'white' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `${sc}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: sc }}>{act.score}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: TX }}>{act.action}</div>
+                      <div style={{ fontSize: 12, color: S3, fontWeight: 500, marginTop: 2 }}>{act.course} · {act.date}</div>
+                    </div>
+                    <div style={{ background: '#FFF3D6', borderRadius: 8, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 12 }}>⭐</span>
+                      <span style={{ fontWeight: 800, fontSize: 13, color: '#C4A77D' }}>+{act.points}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 /* ── ClassesPanel ───────────────────────────────────────────────── */
 function ClassesPanel({ courses, students }: { courses: Course[]; students: EnrolledStudent[] }) {
   const [selectedCourse, setSelectedCourse] = useState('all')
+  const [sortBy, setSortBy] = useState<'name' | 'progress'>('name')
+  const [selectedStudent, setSelectedStudent] = useState<EnrolledStudent | null>(null)
   const publishedCourses = courses.filter(c => c.status === 'PUBLISHED')
-  const filtered = selectedCourse === 'all' ? students : students.filter(s => s.courseId === selectedCourse)
+
+  if (selectedStudent) {
+    return <StudentDetailPanel student={selectedStudent} onBack={() => setSelectedStudent(null)} />
+  }
+
+  const avgProgress = students.length > 0
+    ? Math.round(students.reduce((s, st) => s + st.progress, 0) / students.length)
+    : 0
+
+  const filtered = (selectedCourse === 'all' ? students : students.filter(s => s.courseId === selectedCourse))
+    .slice()
+    .sort((a, b) => sortBy === 'name'
+      ? a.studentName.localeCompare(b.studentName)
+      : b.progress - a.progress)
 
   return (
     <div>
@@ -1246,17 +1501,17 @@ function ClassesPanel({ courses, students }: { courses: Course[]; students: Enro
           <div style={{ fontSize: 13, fontWeight: 600, color: '#5BBABA', marginTop: 2 }}>Нийт сурагч</div>
         </div>
         <div style={{ background: '#FFF3D6', borderRadius: 14, padding: '18px 20px' }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#C4A77D' }}>{publishedCourses.length}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#C4A77D', marginTop: 2 }}>Идэвхтэй хөтөлбөр</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#C4A77D' }}>{avgProgress}%</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#C4A77D', marginTop: 2 }}>Дундаж явц</div>
         </div>
         <div style={{ background: '#FCE4E4', borderRadius: 14, padding: '18px 20px' }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#D97B7B' }}>{new Set(students.map(s => s.courseId)).size}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#E8A5A5', marginTop: 2 }}>Бүртгэлтэй хөтөлбөр</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#D97B7B' }}>{publishedCourses.length}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#E8A5A5', marginTop: 2 }}>Идэвхтэй хөтөлбөр</div>
         </div>
       </div>
 
-      {/* Course filter */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      {/* Filter + sort row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         <FilterPill active={selectedCourse === 'all'} onClick={() => setSelectedCourse('all')}>Бүгд</FilterPill>
         {publishedCourses.map(c => {
           const color = courseColor(c.id)
@@ -1271,35 +1526,49 @@ function ClassesPanel({ courses, students }: { courses: Course[]; students: Enro
             }}>{c.title}</button>
           )
         })}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 13, color: S2, fontWeight: 600 }}>Эрэмбэ:</span>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value as 'name' | 'progress')} style={{
+            padding: '6px 10px', borderRadius: 10, border: `1.5px solid ${BR}`,
+            background: 'white', color: TX, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            fontFamily: 'inherit', outline: 'none',
+          }}>
+            <option value="name">Нэрээр</option>
+            <option value="progress">Явцаар</option>
+          </select>
+        </div>
       </div>
 
       {/* Student list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {filtered.map(student => <StudentRow key={student.id} student={student} />)}
+        {filtered.map(student => (
+          <StudentRow key={student.id} student={student} onClick={() => setSelectedStudent(student)} />
+        ))}
         {filtered.length === 0 && <EmptyState>Сурагч олдсонгүй</EmptyState>}
       </div>
     </div>
   )
 }
 
-function StudentRow({ student }: { student: EnrolledStudent }) {
+function StudentRow({ student, onClick }: { student: EnrolledStudent; onClick?: () => void }) {
   const [hover, setHover] = useState(false)
+  const color = progressColor(student.progress)
 
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
+    <div onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
       background: 'white', borderRadius: 14,
       border: `1.5px solid ${hover ? T : BR}`,
       padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14,
-      transition: 'all 0.15s',
+      transition: 'all 0.15s', cursor: onClick ? 'pointer' : 'default',
     }}>
       <div style={{
-        width: 42, height: 42, borderRadius: 14, background: '#E5F7F7',
-        border: '2px solid #E5F7F7', flexShrink: 0,
+        width: 44, height: 44, borderRadius: 14, background: '#E5F7F7',
+        border: '2px solid #E5F7F7', flexShrink: 0, overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T} strokeWidth="2" strokeLinecap="round">
-          <circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={avatarSrc(student.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 15, color: TX }}>{student.studentName}</div>
@@ -1307,12 +1576,24 @@ function StudentRow({ student }: { student: EnrolledStudent }) {
           <span style={{ fontSize: 12, color: S3, fontWeight: 600 }}>{student.gradeLevel}-р анги</span>
           <Sep />
           <span style={{ fontSize: 12, color: S3, fontWeight: 600 }}>{student.courseTitle}</span>
+          <Sep />
+          <span style={{ fontSize: 12, color: S3, fontWeight: 600 }}>{relativeTime(student.lastActive)}</span>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#FFF3D6', borderRadius: 8, padding: '4px 10px' }}>
-        <span style={{ fontSize: 12 }}>⭐</span>
-        <span style={{ fontWeight: 800, fontSize: 13, color: '#C4A77D' }}>{student.pointsTotal}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, minWidth: 80 }}>
+        <span style={{ fontWeight: 800, fontSize: 13, color }}>{student.progress}%</span>
+        <div style={{ width: 80, height: 6, borderRadius: 4, background: '#F3F0EB', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: 4, background: color,
+            width: `${student.progress}%`, transition: 'width 0.4s ease',
+          }} />
+        </div>
       </div>
+      {onClick && (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={hover ? T : S3} strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0, transition: 'stroke 0.15s' }}>
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      )}
     </div>
   )
 }
@@ -1549,23 +1830,10 @@ function CreatorDashboardInner() {
     }))
     setCourses(loadedCourses)
 
-    const publishedIds = loadedCourses.filter(c => c.status === 'PUBLISHED').map(c => c.id)
-    if (publishedIds.length > 0) {
-      const { data: enrollData } = await supabase
-        .from('enrollments')
-        .select('id, student_id, course_id, students(id, name, avatar, grade_level, points_total), courses(id, title)')
-        .in('course_id', publishedIds)
-
-      setStudents(((enrollData ?? []) as any[]).map((e: any) => ({
-        id: e.id,
-        studentId: e.students?.id ?? '',
-        studentName: e.students?.name ?? '',
-        avatar: e.students?.avatar ?? 'cat',
-        gradeLevel: e.students?.grade_level ?? 1,
-        pointsTotal: e.students?.points_total ?? 0,
-        courseId: e.course_id,
-        courseTitle: e.courses?.title ?? '',
-      })))
+    const res = await fetch('/api/creator/students')
+    if (res.ok) {
+      const data = await res.json()
+      setStudents(data)
     } else {
       setStudents([])
     }

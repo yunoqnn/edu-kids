@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Heart, BookOpen, GraduationCap } from 'lucide-react'
+import { Heart, BookOpen } from 'lucide-react'
 
 function RoleSelectForm() {
   const router = useRouter()
@@ -47,20 +47,8 @@ function RoleSelectForm() {
         <div className="card" style={{ padding: '40px 36px', textAlign: 'center' }}>
           {/* Logo */}
           <div style={{ marginBottom: 28 }}>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 16,
-                background: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 12px',
-              }}
-            >
-              <GraduationCap style={{ width: 32, height: 32, color: 'white' }} />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo.png" alt="StudyComp" style={{ width: 56, height: 56, objectFit: 'contain', margin: '0 auto 12px', display: 'block' }} />
             <div
               style={{
                 fontFamily: 'var(--font-display)',

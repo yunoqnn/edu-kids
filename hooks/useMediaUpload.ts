@@ -9,7 +9,7 @@ export function useMediaUpload() {
 
   const upload = useCallback(async (
     file: File,
-    folder: 'images' | 'audio' = 'images'
+    folder: 'images' | 'audio' | 'videos' = 'images'
   ): Promise<{ url: string; path: string } | null> => {
     setUploading(true)
     setError(null)

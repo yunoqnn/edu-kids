@@ -326,10 +326,11 @@ export default function StudentPage() {
 
           {/* Profile row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}>
-            <div style={{ width: 64, height: 64, borderRadius: 20, overflow: 'hidden', border: '3px solid rgba(255,255,255,0.4)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', flexShrink: 0 }}>
+            <button onClick={() => router.push(`/student/${id}/profile`)} title="Профайл харах"
+              style={{ width: 64, height: 64, borderRadius: 20, overflow: 'hidden', border: '3px solid rgba(255,255,255,0.4)', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', flexShrink: 0, padding: 0, cursor: 'pointer', background: 'none' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={AVATARS[student.avatar] ?? AVATARS['bear']} alt={student.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
+              <img src={AVATARS[student.avatar] ?? AVATARS['bear']} alt={student.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            </button>
             <div style={{ flex: 1 }}>
               <div style={{ color: 'white', fontWeight: 800, fontSize: 20, marginBottom: 2 }}>Сайн уу, {student.name}!</div>
               <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>

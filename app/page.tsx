@@ -13,9 +13,8 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style={{ background: 'rgba(250, 247, 242, 0.9)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--primary)' }}>
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo.png" className="w-10 h-10" alt="StudyComp" style={{ objectFit: 'contain' }} />
             <span className="font-extrabold text-xl" style={{ color: 'var(--primary)' }}>StudyComp</span>
           </div>
           <div className="flex items-center gap-3">
@@ -421,9 +420,8 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--primary)' }}>
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/logo.png" className="w-10 h-10" alt="StudyComp" style={{ objectFit: 'contain' }} />
                 <span className="font-extrabold text-xl">StudyComp</span>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>

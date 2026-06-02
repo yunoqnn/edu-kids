@@ -22,11 +22,8 @@ export default function AdminSidebar() {
     <aside className="w-56 flex-shrink-0 bg-white border-r border-stone-200 flex flex-col h-screen sticky top-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-stone-100">
-        <svg width="28" height="28" viewBox="0 0 48 48" aria-hidden>
-          <circle cx="24" cy="24" r="22" fill="none" stroke="#1F1A2E" strokeWidth="2.5" strokeDasharray="4 3" />
-          <path d="M14 28 L24 16 L34 28 L24 22 Z" fill="#1F1A2E" />
-          <circle cx="24" cy="32" r="2.5" fill="#1F1A2E" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/logo.png" width="28" height="28" alt="StudyComp" style={{ objectFit: 'contain' }} />
         <div>
           <span className="font-bold text-stone-800 text-sm leading-none" style={{ fontFamily: 'DM Serif Display, serif' }}>edukids</span>
           <div className="text-xs text-stone-400 mt-0.5">Админ</div>
