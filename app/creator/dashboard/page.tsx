@@ -1359,26 +1359,26 @@ function StudentDetailPanel({ student, onBack }: { student: EnrolledStudent; onB
         const xp = xpProgress(xpTotal)
         const remaining = xp.xpNeeded - xp.xpIntoLevel
         return (
-          <div style={{ background: '#1A1A2E', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+          <div style={{ background: 'linear-gradient(135deg, #7AD1D1, #5BBABA)', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.35)', flexShrink: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={avatarSrc(student.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 17, color: 'white' }}>{student.studentName}</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
                 {student.gradeLevel}-р анги · Түвшин {studentLevel}
               </div>
             </div>
             <div style={{ marginLeft: 'auto', textAlign: 'right', minWidth: 200 }}>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 600, marginBottom: 8 }}>
-                Дараагийн түвшинд <span style={{ color: '#A78BFA', fontWeight: 800 }}>{remaining} XP</span> дутуу
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginBottom: 8 }}>
+                Дараагийн түвшин хүртэл <span style={{ color: '#FFF3D6', fontWeight: 800 }}>{remaining} XP</span> дутуу
               </div>
-              <div style={{ height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
-                <div style={{ height: '100%', width: `${xp.pct}%`, background: 'linear-gradient(90deg,#7C3AED,#A78BFA)', borderRadius: 4, transition: 'width .6s ease' }} />
+              <div style={{ height: 8, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
+                <div style={{ height: '100%', width: `${xp.pct}%`, background: 'white', borderRadius: 4, transition: 'width .6s ease' }} />
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{xp.xpIntoLevel} / {xp.xpNeeded} XP</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>{xp.xpIntoLevel} / {xp.xpNeeded} XP</div>
             </div>
           </div>
         )

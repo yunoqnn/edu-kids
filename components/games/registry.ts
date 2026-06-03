@@ -25,15 +25,15 @@ export const GAME_REGISTRY: Record<GameType, ComponentType<GameEngineProps<any>>
 }
 
 export const GAME_LABELS: Record<GameType, string> = {
-  SIMPLE_QUIZ:     'Test',
-  DRAG_DROP:       'Drag and Drop',
-  MATCHING:        'Matching',
-  PATTERN:         'Pattern',
-  ODD_ONE_OUT:     'Odd One Out',
+  SIMPLE_QUIZ:     'Тест',
+  DRAG_DROP:       'Чирж байршуулах',
+  MATCHING:        'Холбох',
+  PATTERN:         'Зүй тогтол',
+  ODD_ONE_OUT:     'Илүүц нэгийг олох',
   MATCHSTICK:      'Matchstick Puzzle',
-  CATEGORY_SORT:   'Category Sort',
-  SEQUENCE_REPEAT: 'Sequence Repeat',
-  READ_REMEMBER:   'Read and Remember',
+  CATEGORY_SORT:   'Ангилалд хуваах',
+  SEQUENCE_REPEAT: 'Дараалал давтах',
+  READ_REMEMBER:   'Уншаад санах',
 }
 
 /* Active game types visible to content creators */

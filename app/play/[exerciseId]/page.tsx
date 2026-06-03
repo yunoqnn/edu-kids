@@ -97,6 +97,7 @@ export default function PlayPage() {
       starsEarned={completeResult?.starsEarned ?? 0}
       leveledUp={completeResult?.leveledUp ?? false}
       newLevel={completeResult?.newLevel ?? 1}
+      showRewards={!!studentId}
       onPlayAgain={() => {
         setResult(null)
         setCompleteResult(null)

@@ -461,6 +461,33 @@ function ChildReportPanel({ students }: { students: Student[] }) {
     points: a.exercises?.points_reward ?? 0,
   }))
 
+  /* Earned achievements */
+  const achDaySet = new Set(attempts.map((a: any) => a.completed_at?.split('T')[0]).filter(Boolean))
+  let achStreak = 0
+  const _sd = new Date(); _sd.setHours(0,0,0,0)
+  if (!achDaySet.has(_sd.toISOString().split('T')[0])) _sd.setDate(_sd.getDate() - 1)
+  while (achDaySet.has(_sd.toISOString().split('T')[0])) { achStreak++; _sd.setDate(_sd.getDate() - 1) }
+  const earnedAchIds = new Set<string>()
+  if (attempts.length >= 1)        earnedAchIds.add('a1')
+  if (achStreak >= 7)              earnedAchIds.add('a2')
+  if ((child.stars ?? 0) >= 100)   earnedAchIds.add('a3')
+  if (enrollments.length >= 1)     earnedAchIds.add('a5')
+  if (attempts.length >= 20)       earnedAchIds.add('a6')
+  if (attempts.length >= 50)       earnedAchIds.add('a7')
+  if (child.level >= 5)            earnedAchIds.add('a8')
+  const ACH_ALL = [
+    { id: 'a1', icon: '/achievements/ach1.png', title: 'Анхны алхам' },
+    { id: 'a2', icon: '/achievements/ach2.png', title: 'Тууштай байдал' },
+    { id: 'a3', icon: '/achievements/ach3.png', title: 'Од цуглуулагч' },
+    { id: 'a4', icon: '/achievements/ach4.png', title: 'Төгс оноо' },
+    { id: 'a5', icon: '/achievements/ach5.png', title: 'Хичээлийн мастер' },
+    { id: 'a6', icon: '/achievements/ach6.png', title: 'IQ мастер' },
+    { id: 'a7', icon: '/achievements/ach7.png', title: 'Тоглоомын мастер' },
+    { id: 'a8', icon: '/achievements/ach8.png', title: 'Түвшин 5' },
+    { id: 'a9', icon: '/achievements/ach9.png', title: 'Номын хорхойтон' },
+  ]
+  const earnedAchs = ACH_ALL.filter(a => earnedAchIds.has(a.id))
+
   const stats = [
     { label: 'Бүртгүүлсэн хөтөлбөр', val: enrollments.length, bg: '#E5F7F7', color: '#0D9488' },
     { label: 'Гүйцэтгэсэн', val: `${doneExercises}/${totalExercises}`, bg: '#FFF3D6', color: '#C4A77D' },
@@ -481,23 +508,23 @@ function ChildReportPanel({ students }: { students: Student[] }) {
         const xp = xpProgress(child.xp_total ?? 0)
         const remaining = xp.xpNeeded - xp.xpIntoLevel
         return (
-          <div style={{ background: '#1A1A2E', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.15)', flexShrink: 0 }}>
+          <div style={{ background: 'linear-gradient(135deg, #7AD1D1, #5BBABA)', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 18, marginBottom: 20 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.35)', flexShrink: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={avatarSrc(child.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 17, color: 'white' }}>{child.name}</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{child.grade_level}-р анги · Түвшин {child.level}</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>{child.grade_level}-р анги · Түвшин {child.level}</div>
             </div>
             <div style={{ marginLeft: 'auto', textAlign: 'right', minWidth: 200 }}>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 600, marginBottom: 8 }}>
-                Дараагийн түвшинд <span style={{ color: '#A78BFA', fontWeight: 800 }}>{remaining} XP</span> дутуу
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', fontWeight: 600, marginBottom: 8 }}>
+                Дараагийн түвшин хүртэл <span style={{ color: '#FFF3D6', fontWeight: 800 }}>{remaining} XP</span> дутуу
               </div>
-              <div style={{ height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
-                <div style={{ height: '100%', width: `${xp.pct}%`, background: 'linear-gradient(90deg,#7C3AED,#A78BFA)', borderRadius: 4, transition: 'width .6s ease' }} />
+              <div style={{ height: 8, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden', marginBottom: 5 }}>
+                <div style={{ height: '100%', width: `${xp.pct}%`, background: 'white', borderRadius: 4, transition: 'width .6s ease' }} />
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{xp.xpIntoLevel} / {xp.xpNeeded} XP</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>{xp.xpIntoLevel} / {xp.xpNeeded} XP</div>
             </div>
           </div>
         )
@@ -555,6 +582,24 @@ function ChildReportPanel({ students }: { students: Student[] }) {
               </div>
             </div>
           </div>
+
+          {/* Achievements */}
+          {earnedAchs.length > 0 && (
+            <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px', marginBottom: 16 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: TX, marginBottom: 16 }}>Шагналууд</div>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                {earnedAchs.map(a => (
+                  <div key={a.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 72, height: 72, borderRadius: 20, background: 'white', border: '2px solid #E5F7F7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(122,209,209,0.2)' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={a.icon} alt={a.title} style={{ width: 52, height: 52, objectFit: 'contain' }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: TX, textAlign: 'center', maxWidth: 80 }}>{a.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recent activities */}
           <div style={{ background: 'white', borderRadius: 20, border: `1.5px solid ${BR}`, padding: '22px 24px' }}>

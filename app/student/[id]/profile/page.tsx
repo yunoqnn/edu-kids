@@ -30,32 +30,30 @@ const S3 = '#9CA3AF'
 
 /* ---------- Achievement helpers ---------- */
 function buildAchievements(
-  student: Student, attemptCount: number, streak: number
+  _student: Student, attemptCount: number, streak: number
 ): Achievement[] {
   return [
-    { id: 'a1',  icon: '🎯', color: '#7AD1D1', title: 'Анхны алхам',      desc: 'Хамгийн анхны дасгалаа амжилттай гүйцэтгэлээ.' },
-    { id: 'a2',  icon: '🔥', color: '#E8A5A5', title: 'Тэсвэр хатуужил',  desc: '7 хоног дараалан хичээллэвэл нээгдэнэ.',        progress: { current: Math.min(streak, 7),        total: 7,   unit: 'хоног' } },
-    { id: 'a3',  icon: '⭐', color: '#C4A77D', title: 'Од цуглуулагч',    desc: 'Нийт 100 од цуглууллаа.' },
-    { id: 'a4',  icon: '🏆', color: '#E8A5A5', title: 'Төгс оноо',         desc: 'Дасгалыг нэг ч алдаагүй бөглөлөө.' },
-    { id: 'a5',  icon: '📚', color: '#7AD1D1', title: 'Хичээлч',           desc: 'Эхний бүтэн хичээлээ дуусгалаа.' },
-    { id: 'a6',  icon: '🧠', color: '#9B8BBC', title: 'IQ мастер',         desc: '20 дасгал давбал нээгдэнэ.',                    progress: { current: Math.min(attemptCount, 20), total: 20,  unit: 'дасгал' } },
-    { id: 'a7',  icon: '📖', color: '#C4A77D', title: 'Номын хорхой',      desc: '5 үлгэр уншиж дуусгавал нээгдэнэ.',             progress: { current: 0,                          total: 5,   unit: 'үлгэр' } },
-    { id: 'a8',  icon: '⚡', color: '#7AD1D1', title: 'Хурдан ухаан',      desc: 'Дасгалыг 1 минутад багтаан дуусгалаа.' },
-    { id: 'a9',  icon: '🌟', color: '#C4A77D', title: 'Түвшин 5',          desc: '5 дугаар түвшинд хүрлээ.' },
-    { id: 'a10', icon: '🎮', color: '#9B8BBC', title: 'Тоглоомч',          desc: '20 тоглоом тоглож дуусгалаа.',                  progress: { current: Math.min(attemptCount, 20), total: 20,  unit: 'тоглоом' } },
-    { id: 'a11', icon: '💎', color: '#7AD1D1', title: 'Эрдэнэсийн сан',   desc: '500 од цуглуулбал нээгдэнэ.',                   progress: { current: Math.min(student.points_balance, 500), total: 500, unit: 'од' } },
-    { id: 'a12', icon: '🦉', color: '#9B8BBC', title: 'Эрт босогч',        desc: 'Өглөө 7 цагаас өмнө хичээллэвэл нээгдэнэ.',    progress: { current: 0,                          total: 1,   unit: 'удаа' } },
+    { id: 'a1', icon: '/achievements/ach1.png', color: '#7AD1D1', title: 'Анхны алхам',      desc: 'Хамгийн анхны дасгалаа амжилттай гүйцэтгэлээ.' },
+    { id: 'a2', icon: '/achievements/ach2.png', color: '#E8A5A5', title: 'Тууштай байдал',  desc: '7 хоног дараалан хичээллэвэл нээгдэнэ.',        progress: { current: Math.min(streak, 7),        total: 7,  unit: 'хоног'  } },
+    { id: 'a3', icon: '/achievements/ach3.png', color: '#C4A77D', title: 'Од цуглуулагч',    desc: 'Нийт 100 од цуглууллаа.' },
+    { id: 'a4', icon: '/achievements/ach4.png', color: '#E8A5A5', title: 'Төгс оноо',         desc: 'Дасгалыг нэг ч алдаагүй бөглөлөө.' },
+    { id: 'a5', icon: '/achievements/ach5.png', color: '#7AD1D1', title: 'Хичээлийн мастер', desc: 'Эхний хичээлдээ бүртгүүлж дуусгалаа.' },
+    { id: 'a6', icon: '/achievements/ach6.png', color: '#9B8BBC', title: 'IQ мастер',         desc: 'IQ хичээлийн 20 дасгал давбал нээгдэнэ.',                    progress: { current: Math.min(attemptCount, 20), total: 20, unit: 'дасгал' } },
+    { id: 'a7', icon: '/achievements/ach7.png', color: '#9B8BBC', title: 'Тоглоомын мастер', desc: '50 дасгал дуусгавал нээгдэнэ.',                 progress: { current: Math.min(attemptCount, 50), total: 50, unit: 'дасгал' } },
+    { id: 'a8', icon: '/achievements/ach8.png', color: '#C4A77D', title: 'Түвшин 5',          desc: '5 дугаар түвшинд хүрлээ.' },
+    { id: 'a9', icon: '/achievements/ach9.png', color: '#7AD1D1', title: 'Номын хорхойтон',      desc: '5 үлгэр уншиж дуусгавал нээгдэнэ.',            progress: { current: 0,                          total: 5,  unit: 'үлгэр'  } },
   ]
 }
 
 function computeEarnedIds(student: Student, attemptCount: number, enrollmentCount: number, streak: number): string[] {
   const ids: string[] = []
-  if (attemptCount >= 1)              ids.push('a1')
-  if (streak >= 7)                    ids.push('a2')
-  if (student.points_balance >= 100)  ids.push('a3')
-  if (enrollmentCount >= 1)           ids.push('a5')
-  if (attemptCount >= 20)             ids.push('a6', 'a10')
-  if (student.level >= 5)             ids.push('a9')
+  if (attemptCount >= 1)             ids.push('a1')
+  if (streak >= 7)                   ids.push('a2')
+  if (student.points_balance >= 100) ids.push('a3')
+  if (enrollmentCount >= 1)          ids.push('a5')
+  if (attemptCount >= 20)            ids.push('a6')
+  if (attemptCount >= 50)            ids.push('a7')
+  if (student.level >= 5)            ids.push('a8')
   return ids
 }
 
@@ -85,13 +83,14 @@ function AchTile({ ach, earned, onClick }: { ach: Achievement; earned: boolean; 
       }}>
       <div style={{
         position: 'relative', width: 104, height: 104, borderRadius: 28,
-        background: earned ? `${ach.color}22` : '#F1EEE9',
+        background: 'white',
         border: earned ? `2.5px solid ${ach.color}` : `2px solid ${BR}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: earned ? (hover ? `0 12px 26px ${ach.color}44` : `0 6px 16px ${ach.color}33`) : 'none',
         transition: 'all 0.15s',
       }}>
-        <span style={{ fontSize: 46, lineHeight: 1, filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.4 }}>{ach.icon}</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={ach.icon} alt={ach.title} style={{ width: 76, height: 76, objectFit: 'contain', filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.4 }} />
         {!earned && (
           <div style={{
             position: 'absolute', bottom: -8, right: -8, width: 32, height: 32, borderRadius: '50%',
@@ -128,12 +127,13 @@ function AchModal({ ach, earned, onClose }: { ach: Achievement | null; earned: b
         }}>×</button>
         <div style={{
           width: 104, height: 104, borderRadius: 32, margin: '0 auto 18px',
-          background: earned ? `${ach.color}22` : '#F1EEE9',
+          background: 'white',
           border: earned ? `3px solid ${ach.color}` : `2px solid ${BR}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: earned ? `0 10px 26px ${ach.color}33` : 'none',
         }}>
-          <span style={{ fontSize: 52, filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.4 }}>{ach.icon}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={ach.icon} alt={ach.title} style={{ width: 76, height: 76, objectFit: 'contain', filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.4 }} />
         </div>
         <div style={{ fontSize: 22, fontWeight: 900, color: TX }}>{ach.title}</div>
         <div style={{ marginTop: 7, fontSize: 12, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: earned ? ach.color : S3 }}>
@@ -267,7 +267,7 @@ export default function StudentProfilePage() {
                     <div style={{ width: `${levelPct}%`, height: '100%', background: '#FFF3D6', borderRadius: 5, transition: 'width 0.5s' }} />
                   </div>
                   <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap' }}>
-                    Дараагийн түвшинд {toNext} XP
+                    Дараагийн түвшин хүртэл {toNext} XP
                   </span>
                 </div>
               </div>

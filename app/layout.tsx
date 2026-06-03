@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: 'StudyComp — Хүүхдэд зориулсан сургалтын платформ',
   description: 'Бага сургуулийн 1–5 дугаар ангийн сурагчдад зориулсан тоглоомжуулсан сургалтын платформ',
   icons: {

@@ -11,12 +11,12 @@ interface Student {
   grade_level: number; points_balance: number; points_total: number; xp_total: number; level: number
 }
 interface Exercise {
-  id: string; title: string; game_type: string; points_reward: number
+  id: string; title: string; game_type: string; points_reward: number; xp_reward: number
   lessonId: string; lessonTitle: string; courseTitle: string; courseColor: string
 }
 interface Lesson {
   id: string; title: string; type: string; order_index: number
-  exercises: { id: string; title: string; game_type: string; points_reward: number }[]
+  exercises: { id: string; title: string; game_type: string; points_reward: number; xp_reward: number }[]
 }
 interface Course {
   id: string; title: string; description: string | null
@@ -56,8 +56,9 @@ const S3 = '#9CA3AF'
 const GD = '#C4A77D'
 
 /* ---------- Exercise Card ---------- */
-function ExCard({ ex, onPlay }: { ex: Exercise; onPlay: () => void }) {
+function ExCard({ ex, completed, onPlay }: { ex: Exercise; completed: boolean; onPlay: () => void }) {
   const [hover, setHover] = useState(false)
+  const xp = ex.xp_reward || 20
   return (
     <button onClick={onPlay}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
@@ -69,6 +70,7 @@ function ExCard({ ex, onPlay }: { ex: Exercise; onPlay: () => void }) {
         transform: hover ? 'translateY(-2px)' : 'translateY(0)',
         boxShadow: hover ? '0 8px 24px rgba(0,0,0,0.08)' : '0 1px 4px rgba(0,0,0,0.03)',
         transition: 'all 200ms ease',
+        opacity: completed ? 0.75 : 1,
       }}>
       <div style={{ width: 48, height: 48, borderRadius: 16, background: `${ex.courseColor}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
         {GAME_ICONS[ex.game_type] ?? '🎮'}
@@ -81,10 +83,17 @@ function ExCard({ ex, onPlay }: { ex: Exercise; onPlay: () => void }) {
           <span style={{ fontSize: 11, color: S3, fontWeight: 600 }}>{ex.courseTitle}</span>
         </div>
       </div>
-      <div style={{ background: '#FFF3D6', borderRadius: 10, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-        <span style={{ fontSize: 13 }}>⭐</span>
-        <span style={{ fontWeight: 800, fontSize: 14, color: GD }}>+{ex.points_reward}</span>
-      </div>
+      {completed ? (
+        <div style={{ background: '#E6F9F0', borderRadius: 10, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          <span style={{ fontSize: 13 }}>✅</span>
+          <span style={{ fontWeight: 700, fontSize: 12, color: '#22C55E' }}>Хийсэн</span>
+        </div>
+      ) : (
+        <div style={{ background: '#EEF2FF', borderRadius: 10, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          <span style={{ fontSize: 12 }}>⚡</span>
+          <span style={{ fontWeight: 800, fontSize: 13, color: '#6366F1' }}>+{xp} XP</span>
+        </div>
+      )}
     </button>
   )
 }
@@ -164,6 +173,118 @@ function DiscoverCard({ course, enrolling, onEnroll }: { course: Course; enrolli
   )
 }
 
+/* ---------- Leaderboard ---------- */
+interface LBEntry { id: string; name: string; avatar: string; xp_total: number; level: number }
+
+function Leaderboard({ studentId, enrolledCourses, onClose }: {
+  studentId: string; enrolledCourses: Course[]; onClose: () => void
+}) {
+  const [filter, setFilter] = useState('all')
+  const [entries, setEntries] = useState<LBEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    const load = async () => {
+      if (filter === 'all') {
+        const { data } = await supabase
+          .from('students').select('id, name, avatar, xp_total, level')
+          .order('xp_total', { ascending: false }).limit(50)
+        setEntries(data ?? [])
+      } else {
+        const { data: enrData } = await supabase
+          .from('enrollments').select('student_id').eq('course_id', filter)
+        const ids = (enrData ?? []).map((e: any) => e.student_id)
+        if (ids.length === 0) { setEntries([]); setLoading(false); return }
+        const { data } = await supabase
+          .from('students').select('id, name, avatar, xp_total, level')
+          .in('id', ids).order('xp_total', { ascending: false }).limit(50)
+        setEntries(data ?? [])
+      }
+      setLoading(false)
+    }
+    load()
+  }, [filter])
+
+  const filters = [
+    { id: 'all', label: '🌍 Улс даяар' },
+    ...enrolledCourses.map(c => ({ id: c.id, label: c.title })),
+  ]
+
+  const medal = (rank: number) => rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: BG, overflowY: 'auto', fontFamily: 'Nunito, sans-serif' }}>
+      {/* Header */}
+      <div style={{ background: `linear-gradient(135deg, ${T}, #5BBABA)`, padding: '16px 20px 20px', position: 'sticky', top: 0, zIndex: 10, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -24, right: -24, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 }}>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div style={{ color: 'white', fontWeight: 900, fontSize: 21 }}>🏆 Тэргүүний жагсаалт</div>
+        </div>
+      </div>
+
+      {/* List */}
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 20px 60px' }}>
+        {/* Filter chips */}
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, scrollbarWidth: 'none' }}>
+          {filters.map(f => (
+            <button key={f.id} onClick={() => setFilter(f.id)} style={{
+              flexShrink: 0, padding: '8px 18px', borderRadius: 20,
+              border: `2px solid ${filter === f.id ? T : BR}`,
+              cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, transition: 'all 0.15s',
+              background: filter === f.id ? '#E5F7F7' : 'white',
+              color: filter === f.id ? '#0D9488' : S2,
+            }}>{f.label}</button>
+          ))}
+        </div>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: S3, fontWeight: 600 }}>Уншиж байна...</div>
+        ) : entries.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: S3, fontWeight: 600 }}>Мэдээлэл байхгүй байна</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {entries.map((entry, i) => {
+              const rank = i + 1
+              const isSelf = entry.id === studentId
+              const m = medal(rank)
+              return (
+                <div key={entry.id} style={{
+                  background: 'white', borderRadius: 16,
+                  border: isSelf ? `2.5px solid ${T}` : `1.5px solid ${BR}`,
+                  padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                  boxShadow: isSelf ? `0 4px 16px ${T}33` : '0 1px 4px rgba(0,0,0,0.03)',
+                }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: m ? 22 : 14, fontWeight: 800, color: '#C4A77D', background: m ? 'transparent' : (rank <= 10 ? '#FFF3D6' : '#F3F0EB') }}>
+                    {m ?? rank}
+                  </div>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, overflow: 'hidden', border: '2px solid #E5F7F7', flexShrink: 0 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={AVATARS[entry.avatar] ?? AVATARS['bear']} alt={entry.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: TX, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      {entry.name}
+                      {isSelf && <span style={{ fontSize: 11, fontWeight: 700, background: '#E5F7F7', color: T, padding: '2px 8px', borderRadius: 6 }}>Та</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: S3, fontWeight: 600, marginTop: 2 }}>Түвшин {entry.level}</div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: 16, color: isSelf ? T : TX }}>{(entry.xp_total ?? 0).toLocaleString()}</div>
+                    <div style={{ fontSize: 11, color: S3, fontWeight: 600 }}>XP</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ---------- Page ---------- */
 interface ScreenTimeSettings {
   daily_limit_minutes: number
@@ -192,6 +313,8 @@ export default function StudentPage() {
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
   const [screenTimeBlock, setScreenTimeBlock] = useState<null | 'limit' | 'schedule'>(null)
   const [screenTimeSettings, setScreenTimeSettings] = useState<ScreenTimeSettings | null>(null)
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set())
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -217,9 +340,14 @@ export default function StudentPage() {
         if (isOutsideSchedule(st)) { setScreenTimeBlock('schedule'); setLoading(false); return }
       }
 
+      /* Fetch completed exercise IDs for this student */
+      const { data: attempts } = await supabase
+        .from('exercise_attempts').select('exercise_id').eq('student_id', id)
+      setCompletedIds(new Set((attempts ?? []).map((a: { exercise_id: string }) => a.exercise_id)))
+
       /* Fetch published courses with lessons and exercises */
       const { data: rawCourses } = await supabase
-        .from('courses').select(`id, title, description, grade_level, lessons ( id, title, type, order_index, exercises ( id, title, game_type, points_reward ) )`)
+        .from('courses').select(`id, title, description, grade_level, lessons ( id, title, type, order_index, exercises ( id, title, game_type, points_reward, xp_reward ) )`)
         .eq('status', 'PUBLISHED').order('created_at', { ascending: false })
 
       /* Fetch enrollments for this child */
@@ -305,6 +433,10 @@ export default function StudentPage() {
     <>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap'); * { box-sizing:border-box; } body { font-family:'Nunito',sans-serif; }`}</style>
 
+      {showLeaderboard && (
+        <Leaderboard studentId={id} enrolledCourses={enrolled} onClose={() => setShowLeaderboard(false)} />
+      )}
+
       <div style={{ minHeight: '100vh', background: `linear-gradient(180deg, #E5F7F7 0%, ${BG} 30%, ${BG} 100%)`, fontFamily: 'Nunito, sans-serif', paddingBottom: 100 }}>
 
         {/* Header */}
@@ -318,9 +450,15 @@ export default function StudentPage() {
               style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 16 }}>⭐</span>
-              <span style={{ color: 'white', fontWeight: 800, fontSize: 15 }}>{student.points_balance}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16 }}>⭐</span>
+                <span style={{ color: 'white', fontWeight: 800, fontSize: 15 }}>{student.points_balance}</span>
+              </div>
+              <button onClick={() => setShowLeaderboard(true)}
+                style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                🏆
+              </button>
             </div>
           </div>
 
@@ -334,7 +472,7 @@ export default function StudentPage() {
             <div style={{ flex: 1 }}>
               <div style={{ color: 'white', fontWeight: 800, fontSize: 20, marginBottom: 2 }}>Сайн уу, {student.name}!</div>
               <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-    {student.grade_level}-р анги · Түвшин {student.level} · {toNext} XP дараагийн түвшинд
+    {student.grade_level}-р анги · Түвшин {student.level} · {toNext} XP дараагийн түвшин хүртэл
   </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 4, overflow: 'hidden' }}>
@@ -373,7 +511,7 @@ export default function StudentPage() {
                   </button>
                 </div>
               ) : allExercises.map(ex => (
-                <ExCard key={ex.id} ex={ex} onPlay={() => router.push(`/play/${ex.id}?studentId=${id}`)} />
+                <ExCard key={ex.id} ex={ex} completed={completedIds.has(ex.id)} onPlay={() => router.push(`/play/${ex.id}?studentId=${id}`)} />
               ))}
             </div>
           )}

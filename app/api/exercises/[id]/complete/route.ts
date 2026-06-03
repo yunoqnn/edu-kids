@@ -13,21 +13,20 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await request.json()
-  const { studentId, score, correctCount, incorrectCount, timeElapsedSeconds } = body as {
-    studentId: string
-    score: number
-    correctCount: number
-    incorrectCount: number
-    timeElapsedSeconds: number
+  let body: { studentId?: string; score?: number; correctCount?: number; incorrectCount?: number; timeElapsedSeconds?: number }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
+  const { studentId, score = 0, correctCount = 0, incorrectCount = 0 } = body
 
   if (!studentId) return NextResponse.json({ error: 'studentId required' }, { status: 400 })
 
   /* Verify this student belongs to the requesting user */
   const { data: student } = await supabaseAdmin
     .from('students')
-    .select('id, xp_total, stars, level, parent_id, points_total')
+    .select('id, xp_total, stars, level, parent_id, points_total, points_balance')
     .eq('id', studentId)
     .single()
 
@@ -66,8 +65,8 @@ export async function POST(
     const pct = score > 0 ? score / (correctCount + incorrectCount) : correctCount / Math.max(correctCount + incorrectCount, 1)
     const multiplier = pct >= 0.8 ? 1 : pct >= 0.5 ? 0.5 : 0.25
 
-    xpEarned    = Math.round(exercise.xp_reward * multiplier)
-    starsEarned = Math.round(exercise.stars_reward * multiplier)
+    xpEarned    = Math.round((exercise.xp_reward    || 20) * multiplier)
+    starsEarned = Math.round((exercise.stars_reward || 3)  * multiplier)
 
     const earnedXpTotal = student.xp_total + xpEarned
     const earnedStars   = student.stars + starsEarned
@@ -77,10 +76,11 @@ export async function POST(
     await supabaseAdmin
       .from('students')
       .update({
-        xp_total:     earnedXpTotal,
-        stars:        earnedStars,
-        level:        earnedLevel,
-        points_total: (student.points_total ?? 0) + (exercise.points_reward ?? 0),
+        xp_total:       earnedXpTotal,
+        stars:          earnedStars,
+        level:          earnedLevel,
+        points_total:   (student.points_total   ?? 0) + (exercise.points_reward ?? 0),
+        points_balance: (student.points_balance ?? 0) + starsEarned,
       })
       .eq('id', studentId)
 

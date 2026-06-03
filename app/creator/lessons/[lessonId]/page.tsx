@@ -589,7 +589,7 @@ export default function LessonEditorPage() {
         <div className="bg-white rounded-2xl border border-stone-200 p-5 flex items-center justify-between">
           <div>
             <h2 className="font-bold text-stone-700">Дасгал</h2>
-            <p className="text-xs text-stone-400 mt-0.5">Game-based дасгал нэмэх</p>
+            <p className="text-xs text-stone-400 mt-0.5">Тоглоомд суурилсан дасгал нэмэх</p>
           </div>
           <button
             onClick={() => router.push(`/creator/exercises/new?lessonId=${lessonId}`)}

@@ -10,10 +10,11 @@ interface Props {
   starsEarned: number
   leveledUp: boolean
   newLevel: number
+  showRewards?: boolean
   onPlayAgain: () => void
 }
 
-export function GameResultScreen({ result, title, xpEarned, starsEarned, leveledUp, newLevel, onPlayAgain }: Props) {
+export function GameResultScreen({ result, title, xpEarned, starsEarned, leveledUp, newLevel, showRewards = false, onPlayAgain }: Props) {
   const router = useRouter()
   const pct = Math.round((result.score / result.maxScore) * 100)
   const { message, color } =
@@ -63,7 +64,7 @@ export function GameResultScreen({ result, title, xpEarned, starsEarned, leveled
         </div>
 
         {/* XP and Stars earned */}
-        {(xpEarned > 0 || starsEarned > 0) && (
+        {showRewards && (xpEarned > 0 || starsEarned > 0) && (
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-violet-50 rounded-2xl p-4">
               <div className="text-2xl font-bold text-violet-600">+{xpEarned}</div>
